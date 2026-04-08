@@ -43,4 +43,10 @@ class Property extends Model
     {
         return $this->hasMany(Conversation::class, 'job_id'); // Note: job_id in conversations table references properties
     }
+
+    // Relationship with property category
+    public function propertyCategory()
+    {
+        return $this->belongsTo(\App\Models\PropertyCategory::class, 'property_type', 'slug');
+    }
 }

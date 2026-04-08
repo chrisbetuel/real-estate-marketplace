@@ -30,9 +30,9 @@
                         <i class="fas fa-edit me-2"></i>Edit Profile
                     </a>
                     
-                    @if($user->isProfessional() && $user->professionalProfile)
-                        <a href="{{ route('profile.professional') }}" class="btn w-100" style="background: var(--primary-dark); color: var(--soft-white); border-radius: 15px; padding: 12px; font-weight: 600;">
-                            <i class="fas fa-briefcase me-2"></i>Professional Details
+@if($user->user_type == 'professional' && $user->professionalProfile)
+                        <a href="{{ route('professional.dashboard') }}" class="btn w-100" style="background: var(--primary-dark); color: var(--soft-white); border-radius: 15px; padding: 12px; font-weight: 600;">
+                            <i class="fas fa-briefcase me-2"></i>Professional Dashboard
                         </a>
                     @elseif($user->isStoreOwner() && $user->store)
                         <a href="{{ route('stores.edit', $user->store) }}" class="btn w-100" style="background: var(--primary-dark); color: var(--soft-white); border-radius: 15px; padding: 12px; font-weight: 600;">
@@ -47,6 +47,14 @@
         <div class="col-md-8">
             <div class="card shadow-sm" style="background: var(--soft-white); border: none; border-radius: 20px;">
                 <div class="card-body p-4">
+                    @if(session('success'))
+                    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>Profile Updated!</strong> Your changes have been saved successfully. 
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    @endif
+                    
                     <h5 class="fw-bold mb-4" style="color: var(--primary-dark);">Profile Information</h5>
                     
                     <!-- Contact Information -->

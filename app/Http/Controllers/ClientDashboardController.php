@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Job;
 use App\Models\Bid;
 use App\Models\User;
+use App\Models\Transaction;
+use App\Models\EscrowHold;
+use App\Models\Wallet;
+use Illuminate\Support\Facades\DB;
 
 class ClientDashboardController extends Controller
 {
@@ -37,6 +41,14 @@ class ClientDashboardController extends Controller
                 ->where('status', 'pending')
                 ->count(),
         ];
+
+$unreadCount = \App\Models\Message::whereHas('conversation', function($query) {
+            $query->whereHas('participants', function($p) {
+                $p->where('user_id', Auth::id());
+            });
+        })->where('is_read', false)
+          ->where('user_id', '!=', Auth::id())
+          ->count();
         
         // Recent activity
         $recentBids = Bid::whereIn('job_id', $jobs->pluck('id'))
@@ -45,7 +57,7 @@ class ClientDashboardController extends Controller
             ->take(10)
             ->get();
         
-        return view('client.dashboard', compact('jobs', 'stats', 'recentBids'));
+        return view('client.dashboard', compact('jobs', 'stats', 'recentBids', 'unreadCount'));
     }
     
     public function jobs()
@@ -66,9 +78,15 @@ class ClientDashboardController extends Controller
         
         // Get all bids for this job using project_job_id
         $bids = Bid::where('project_job_id', $jobId)
-            ->with('professional')
+            ->with(['professional', 'escrowHold', 'transaction'])
             ->latest()
             ->get();
+        
+        $hasPaidConnection = auth()->check() && Transaction::where('client_id', Auth::id())
+            ->where('project_job_id', $jobId)
+            ->where('type', 'connection_fee')
+            ->where('status', 'completed')
+            ->exists();
          
         \Log::info('Job Bids Debug', [
             'job_id' => $jobId,
@@ -77,7 +95,7 @@ class ClientDashboardController extends Controller
             'bids_data' => $bids->toArray()
         ]);
         
-        return view('client.job-bids', compact('job', 'bids'));
+        return view('client.job-bids', compact('job', 'bids', 'hasPaidConnection'));
     }
     
     public function acceptBid($bidId)
@@ -94,22 +112,62 @@ class ClientDashboardController extends Controller
             return back()->with('error', 'This job is no longer accepting bids.');
         }
         
-        // Accept this bid
-        $bid->update(['status' => 'accepted']);
-        
-        // Reject all other bids for this job
-        Bid::where('job_id', $bid->job_id)
-            ->where('id', '!=', $bidId)
-            ->update(['status' => 'rejected']);
-        
-        // Update job status and assign professional
-        $bid->job->update([
-            'status' => 'in_progress',
-            'assigned_professional_id' => $bid->professional_id
-        ]);
-        
+        DB::transaction(function () use ($bid, $bidId) {
+            // Accept this bid
+            $bid->update(['status' => 'accepted']);
+            
+            // Reject all other bids for this job
+            Bid::where('project_job_id', $bid->project_job_id)
+                ->where('id', '!=', $bidId)
+                ->update(['status' => 'rejected']);
+            
+            // Update job status and assign professional
+            $bid->job->update([
+                'status' => 'in_progress',
+                'assigned_professional_id' => $bid->professional_id
+            ]);
+
+            // Create escrow for the bid amount
+            $amount = $bid->amount;
+            $wallet = Auth::user()->wallet;
+
+            if (!($wallet && $wallet->balance >= $amount)) {
+                throw new \Exception('Insufficient wallet balance. Please add funds or use external payment.');
+            }
+
+            // Wallet payment
+            $wallet->deductBalance($amount, 'Escrow for job ' . $bid->job->title);
+
+            $transaction = Transaction::create([
+                'client_id' => Auth::id(),
+                'professional_id' => $bid->professional_id,
+                'project_job_id' => $bid->project_job_id,
+                'amount' => $amount,
+                'platform_fee' => $amount * 0.10,
+                'professional_amount' => $amount * 0.90,
+                'status' => 'held',
+                'payment_method' => 'wallet',
+                'description' => 'Job escrow: ' . $bid->job->title,
+                'held_until' => now()->addDays(14),
+            ]);
+
+                $escrow = EscrowHold::create([
+                    'job_id' => $bid->project_job_id,
+                'client_id' => Auth::id(),
+                'professional_id' => $bid->professional_id,
+                'amount' => $amount,
+                'platform_fee' => $amount * 0.10,
+                'status' => 'pending',
+            ]);
+
+            $bid->update([
+                'transaction_id' => $transaction->id,
+                'escrow_id' => $escrow->id,
+            ]);
+        });
+
         return redirect()->route('client.job-bids', $bid->job->id)
-            ->with('success', 'Bid accepted! The professional has been notified.');
+            ->with('success', 'Bid accepted and escrow created! Job payment held securely.');
     }
     
     public function rejectBid($bidId)
@@ -132,9 +190,14 @@ class ClientDashboardController extends Controller
             ->where('status', 'in_progress')
             ->findOrFail($jobId);
         
-        $job->update(['status' => 'completed']);
+        DB::transaction(function () use ($job) {
+            if ($job->escrowHold) {
+                $job->escrowHold->release();
+            }
+            $job->update(['status' => 'completed']);
+        });
         
         return redirect()->route('client.jobs')
-            ->with('success', 'Job marked as completed!');
+            ->with('success', 'Job completed! Professional has been paid.');
     }
 }

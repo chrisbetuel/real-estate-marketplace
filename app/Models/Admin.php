@@ -30,9 +30,23 @@ class Admin extends Authenticatable
     ];
 
     protected $casts = [
-
         'is_active' => 'boolean',
         'last_login_at' => 'datetime',
     ];
 
+    /**
+     * Send the password reset notification.
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new \App\Notifications\AdminResetPasswordNotification($token));
+    }
+
+    /**
+     * Get the email address for password reset.
+     */
+    public function getEmailForPasswordReset()
+    {
+        return $this->email;
+    }
 }

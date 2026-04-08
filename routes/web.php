@@ -20,6 +20,11 @@ use App\Http\Controllers\HomeSearchController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\ClientDashboardController;
 use App\Http\Controllers\ProfessionalDashboardController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\StoreDashboardController;
+use App\Http\Controllers\StoreFrontController;
+
+use App\Http\Controllers\ServiceEcosystemController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,6 +36,11 @@ Route::view('/about', 'about')->name('about');
 Route::view('/contact', 'contact')->name('contact');
 Route::view('/terms', 'terms')->name('terms');
 Route::view('/privacy', 'privacy')->name('privacy');
+Route::view('/our-story', 'our-story')->name('our-story');
+Route::view('/how-it-works', 'how-it-works')->name('how-it-works');
+Route::view('/team', 'team')->name('team');
+Route::view('/copyright', 'copyright')->name('copyright');
+Route::view('/disclaimer', 'disclaimer')->name('disclaimer');
 
 /*
 |--------------------------------------------------------------------------
@@ -60,6 +70,40 @@ Route::get('/search/professionals', [SearchController::class, 'professionals'])-
 Route::get('/search/products', [SearchController::class, 'products'])->name('search.products');
 Route::get('/search/stores', [SearchController::class, 'stores'])->name('search.stores');
 
+// Public professionals listing
+Route::get('/professionals', [ProfessionalController::class, 'index'])->name('professionals.index');
+
+/*
+|--------------------------------------------------------------------------
+| Store Front (Client Shopping)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('shop')->name('shop.')->group(function () {
+    Route::get('/stores', [StoreFrontController::class, 'stores'])->name('stores');
+    Route::get('/stores/{id}', [StoreFrontController::class, 'store'])->name('store');
+    Route::get('/products', [StoreFrontController::class, 'products'])->name('products');
+    Route::get('/product/{id}', [StoreFrontController::class, 'product'])->name('product');
+    
+    // Cart routes (authenticated)
+    Route::middleware(['auth'])->group(function () {
+        Route::post('/cart/add/{productId}', [StoreFrontController::class, 'addToCart'])->name('add-to-cart');
+        Route::get('/cart', [StoreFrontController::class, 'cart'])->name('cart');
+        Route::post('/cart/update/{cartItemId}', [StoreFrontController::class, 'updateCart'])->name('update-cart');
+        Route::delete('/cart/remove/{cartItemId}', [StoreFrontController::class, 'removeFromCart'])->name('remove-from-cart');
+        
+        // Checkout routes
+        Route::get('/checkout', [StoreFrontController::class, 'checkout'])->name('checkout');
+        Route::get('/escrow-job/{bid}', [PaymentController::class, 'showEscrowJob'])->name('payment.escrow-job');
+        Route::post('/order', [StoreFrontController::class, 'processOrder'])->name('process-order');
+        Route::get('/order/{orderId}/confirmation', [StoreFrontController::class, 'orderConfirmation'])->name('order-confirmation');
+        
+        // My orders
+        Route::get('/my-orders', [StoreFrontController::class, 'myOrders'])->name('my-orders');
+        Route::get('/order/{order}', [StoreFrontController::class, 'orderDetails'])->name('order-details');
+        Route::post('/orders/{order}/confirm', [StoreFrontController::class, 'confirmReceipt'])->name('orders.confirm-receipt');
+    });
+});
+
 Route::resource('properties', PropertyController::class);
 
 /*
@@ -70,11 +114,10 @@ Route::resource('properties', PropertyController::class);
 Route::middleware('auth')->group(function () {
 
     // Profile routes
-    Route::middleware('auth')->group(function () {
-        Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
-        Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-        Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    });
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/upload-image', [ProfileController::class, 'uploadImage'])->name('profile.upload-image');
 
     /*
     |--------------------------------------------------------------------------
@@ -86,7 +129,7 @@ Route::middleware('auth')->group(function () {
 
         return match ($user->user_type) {
             'professional' => redirect()->route('professional.dashboard'),
-            'store_owner' => redirect()->route('store.dashboard'),
+            'store_owner' => redirect()->route('store-owner.dashboard'),
             'admin' => redirect()->route('admin.dashboard'),
             default => redirect()->route('client.dashboard'),
         };
@@ -120,8 +163,20 @@ Route::middleware('auth')->group(function () {
         Route::patch('/jobs/{id}/status', [ProfessionalDashboardController::class, 'updateJobStatus'])->name('update-job-status');
     });
 
-    // 🔹 Store
-    Route::get('/store/dashboard', [StoreController::class, 'dashboard'])->name('store.dashboard');
+    // 🔹 Store Owner Dashboard
+    Route::middleware(['auth', 'store_owner'])->prefix('store-owner')->name('store-owner.')->group(function () {
+        Route::get('/dashboard', [StoreDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/profile', [StoreDashboardController::class, 'editProfile'])->name('profile.edit');
+        Route::post('/profile', [StoreDashboardController::class, 'updateProfile'])->name('profile.update');
+        
+        // Product Management
+        Route::get('/products', [StoreDashboardController::class, 'products'])->name('products');
+        Route::get('/products/create', [StoreDashboardController::class, 'createProduct'])->name('products.create');
+        Route::post('/products', [StoreDashboardController::class, 'storeProduct'])->name('products.store');
+        Route::get('/products/{id}/edit', [StoreDashboardController::class, 'editProduct'])->name('products.edit');
+        Route::put('/products/{id}', [StoreDashboardController::class, 'updateProduct'])->name('products.update');
+        Route::delete('/products/{id}', [StoreDashboardController::class, 'deleteProduct'])->name('products.delete');
+    });
 
     // 🔹 Admin
     Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
@@ -145,6 +200,7 @@ Route::middleware('auth')->group(function () {
     | Products & Stores
     |--------------------------------------------------------------------------
     */
+
     Route::resource('products', ProductController::class);
     Route::post('/products/{product}/viewing-request', [ProductController::class, 'viewingRequest'])
         ->name('products.viewing-request');
@@ -153,12 +209,25 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-store', [StoreController::class, 'myStore'])->name('stores.my');
     Route::get('/stores/{store}/products', [StoreController::class, 'products'])->name('stores.products');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Professionals
-    |--------------------------------------------------------------------------
-    */
-    Route::resource('professionals', ProfessionalController::class);
+    // Payment routes
+    Route::middleware(['auth'])->prefix('payment')->name('payment.')->group(function () {
+        Route::get('/connection/{job}', [PaymentController::class, 'showConnectionPayment'])->name('connection');
+        Route::post('/connection/{job}', [PaymentController::class, 'processConnectionPayment'])->name('process-connection');
+        Route::get('/professional-unlock/{professional}', [PaymentController::class, 'showProfessionalUnlock'])->name('professional-unlock');
+        Route::post('/professional-unlock/{professional}', [PaymentController::class, 'processProfessionalUnlock'])->name('process-professional-unlock');
+        Route::post('/escrow/{job}', [PaymentController::class, 'createEscrow'])->name('create-escrow');
+        Route::post('/escrow/{escrow}/release', [PaymentController::class, 'releaseEscrow'])->name('release-escrow');
+        Route::post('/escrow/{escrow}/dispute', [PaymentController::class, 'disputeEscrow'])->name('dispute-escrow');
+        Route::get('/wallet/add', [PaymentController::class, 'showAddFunds'])->name('add-funds');
+        Route::post('/wallet/add', [PaymentController::class, 'addFunds']);
+    });
+
+/*
+|--------------------------------------------------------------------------
+| Professionals
+|--------------------------------------------------------------------------
+*/
+Route::resource('professionals', ProfessionalController::class)->except(['index']);
 
     /*
     |--------------------------------------------------------------------------
@@ -173,12 +242,14 @@ Route::middleware('auth')->group(function () {
     | Messaging
     |--------------------------------------------------------------------------
     */
-    Route::prefix('messages')->name('messages.')->group(function () {
+Route::prefix('messages')->name('messages.')->middleware('auth')->group(function () {
         Route::get('/', [MessageController::class, 'index'])->name('index');
         Route::get('/start/{job}', [MessageController::class, 'start'])->name('start-job');
+        Route::get('/start/professional/{professional}', [MessageController::class, 'startWithProfessional'])->name('start-professional');
         Route::get('/start-store/{store}', [MessageController::class, 'startStoreConversation'])->name('start-store');
         Route::get('/{conversation}', [MessageController::class, 'show'])->name('show');
         Route::post('/{conversation}/send', [MessageController::class, 'send'])->name('send');
+        Route::get('/{conversation}/check-new', [MessageController::class, 'checkNewMessages'])->name('check-new');
     });
 
     /*
@@ -187,10 +258,12 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::resource('reviews', ReviewController::class)->except(['index', 'create']);
-    Route::post('/reviews/{job}', [ReviewController::class, 'store'])->name('reviews.store');
+Route::post('/reviews/{job}', [ReviewController::class, 'store'])->name('reviews.job.store');
     Route::post('/reviews/{review}/respond', [ReviewController::class, 'respond'])->name('reviews.respond');
 });
 
+// Service Ecosystem Routes
+Route::get('/ecosystem/stage/{stage}', [ServiceEcosystemController::class, 'getProfessionalsByStage'])->name('ecosystem.stage');
 /*
 |--------------------------------------------------------------------------
 | Admin Extra
@@ -208,3 +281,4 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
 */
 require __DIR__.'/admin.php';
 require __DIR__.'/auth.php';
+

@@ -1,189 +1,434 @@
 @extends('layouts.app')
 
-@section('title', 'Conversation - Oweru Real Estate')
+@section('title', 'Chat with ' . ($otherUser->name ?? 'User') . ' - BuildConnect')
 
 @section('content')
-<div class="container py-5">
-    <!-- Back Button -->
-    <div class="row mb-3">
+<div class="container py-4">
+    <div class="row">
         <div class="col-12">
-            <a href="{{ route('messages.index') }}" class="btn btn-link text-decoration-none" style="color: var(--primary-dark);">
-                <i class="fas fa-arrow-left me-2"></i>Back to Messages
-            </a>
-        </div>
-    </div>
-
-    @php
-        $otherParticipant = $conversation->participants->where('user_id', '!=', Auth::id())->first();
-    @endphp
-
-    <!-- Chat Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm" style="background: var(--soft-white); border: none; border-radius: 20px;">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center">
-                        <!-- Participant Avatar -->
-                        <div class="me-3">
-                            @if($otherParticipant && $otherParticipant->user)
-                                <img src="{{ $otherParticipant->user->profile_image ?? 'https://via.placeholder.com/70x70/0F172A/F8F8F9?text=' . substr($otherParticipant->user->name, 0, 1) }}" 
-                                     alt="{{ $otherParticipant->user->name }}"
-                                     style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 3px solid var(--gold-accent);">
-                            @else
-                                <img src="https://via.placeholder.com/70x70/0F172A/F8F8F9?text=U" 
-                                     alt="User"
-                                     style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 3px solid var(--gold-accent);">
-                            @endif
-                        </div>
-                        
-                        <!-- Participant Info -->
-                        <div class="flex-grow-1">
-                            <h4 class="fw-bold mb-1" style="color: var(--primary-dark);">
-                                @if($otherParticipant && $otherParticipant->user)
-                                    {{ $otherParticipant->user->name }}
-                                    @if($otherParticipant->user->isProfessional())
-                                        <span class="badge ms-2" style="background: rgba(201, 165, 59, 0.1); color: var(--gold-accent);">Professional</span>
-                                    @elseif($otherParticipant->user->isStoreOwner())
-                                        <span class="badge ms-2" style="background: rgba(201, 165, 59, 0.1); color: var(--gold-accent);">Store Owner</span>
-                                    @elseif($otherParticipant->user->isClient())
-                                        <span class="badge ms-2" style="background: rgba(201, 165, 59, 0.1); color: var(--gold-accent);">Client</span>
-                                    @endif
-                                @else
-                                    Unknown User
-                                @endif
-                            </h4>
-                            
-                            @if($conversation->projectJob)
-                                <p class="mb-0" style="color: var(--gold-accent);">
-                                    <i class="fas fa-briefcase me-2"></i>Regarding: <a href="{{ route('jobs.show', $conversation->projectJob) }}" class="text-decoration-none" style="color: var(--gold-accent); font-weight: 600;">{{ $conversation->projectJob->title }}</a>
-                                </p>
-                            @elseif($conversation->product)
-                                <p class="mb-0" style="color: var(--gold-accent);">
-                                    <i class="fas fa-tools me-2"></i>Regarding: <a href="{{ route('products.show', $conversation->product) }}" class="text-decoration-none" style="color: var(--gold-accent); font-weight: 600;">{{ $conversation->product->name }}</a>
-                                </p>
-                            @endif
-                        </div>
+            <!-- Chat Header -->
+            <div class="chat-header mb-4">
+                <div class="d-flex align-items-center">
+                    <a href="{{ route('messages.index') }}" class="btn-back me-3">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <div class="chat-avatar me-3">
+                        <img src="{{ $otherUser->profile_image_url }}" alt="{{ $otherUser->name }}">
+                    </div>
+                    <div>
+                        <h5 class="mb-0">{{ $otherUser->name }}</h5>
+                        <small class="text-muted">{{ ucfirst($otherUser->user_type) }}</small>
+                        @if($conversation->job)
+                            <div class="job-reference mt-1">
+                                <i class="fas fa-briefcase me-1"></i>
+                                <span>Job: {{ Str::limit($conversation->job->title, 40) }}</span>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Messages Container -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm" style="background: var(--soft-white); border: none; border-radius: 20px; height: 500px; display: flex; flex-direction: column;">
-                <div class="card-body overflow-auto" id="messages-container" style="flex: 1; padding: 20px;">
-                    @forelse($messages as $message)
-                        @if($message->sender_id == Auth::id())
+            <!-- Messages Container -->
+            <div class="chat-container" id="messagesContainer">
+                <div class="messages-list">
+                    @foreach($conversation->messages as $message)
+                        @if($message->user_id == Auth::id())
                             <!-- Sent Message -->
-                            <div class="d-flex justify-content-end mb-3">
-                                <div class="position-relative" style="max-width: 70%;">
-                                    <div class="p-3 rounded-3" style="background: var(--primary-dark); color: var(--soft-white); border-radius: 20px 20px 5px 20px;">
-                                        <p class="mb-1">{{ $message->message }}</p>
-                                        @if($message->attachments)
-                                            <div class="mt-2">
-                                                @foreach($message->attachments as $attachment)
-                                                    <a href="{{ Storage::url($attachment['path']) }}" target="_blank" class="small text-white-50 d-block">
-                                                        <i class="fas fa-paperclip me-1"></i>{{ $attachment['name'] }}
-                                                    </a>
-                                                @endforeach
-                                            </div>
-                                        @endif
+                            <div class="message sent">
+                                <div class="message-content">
+                                    <div class="message-bubble">
+                                        <p class="mb-0">{{ $message->message }}</p>
                                     </div>
-                                    <small class="text-muted mt-1 d-block text-end">{{ $message->created_at->format('M d, h:i A') }}</small>
+                                    <div class="message-time">
+                                        {{ $message->created_at->format('g:i A') }}
+                                    </div>
                                 </div>
                             </div>
                         @else
                             <!-- Received Message -->
-                            <div class="d-flex justify-content-start mb-3">
-                                <div class="position-relative" style="max-width: 70%;">
-                                    <div class="p-3 rounded-3" style="background: var(--light-grey); color: var(--primary-dark); border-radius: 20px 20px 20px 5px;">
-                                        <p class="mb-1">{{ $message->message }}</p>
-                                        @if($message->attachments)
-                                            <div class="mt-2">
-                                                @foreach($message->attachments as $attachment)
-                                                    <a href="{{ Storage::url($attachment['path']) }}" target="_blank" class="small" style="color: var(--primary-dark); opacity: 0.7;">
-                                                        <i class="fas fa-paperclip me-1"></i>{{ $attachment['name'] }}
-                                                    </a>
-                                                @endforeach
-                                            </div>
-                                        @endif
+                            <div class="message received">
+                                <div class="message-avatar">
+                                    <img src="{{ $otherUser->profile_image_url }}" alt="{{ $otherUser->name }}">
+                                </div>
+                                <div class="message-content">
+                                    <div class="message-bubble">
+                                        <p class="mb-0">{{ $message->message }}</p>
                                     </div>
-                                    <small class="text-muted mt-1 d-block">{{ $message->created_at->format('M d, h:i A') }}</small>
+                                    <div class="message-time">
+                                        {{ $message->created_at->format('g:i A') }}
+                                    </div>
                                 </div>
                             </div>
                         @endif
-                    @empty
-                        <div class="text-center py-5">
-                            <i class="fas fa-comments fa-4x mb-3" style="color: var(--gold-accent); opacity: 0.5;"></i>
-                            <h5 style="color: var(--primary-dark);">No messages yet</h5>
-                            <p style="color: var(--primary-dark); opacity: 0.7;">Start the conversation by sending a message below</p>
-                        </div>
-                    @endforelse
+                    @endforeach
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Message Input -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow-sm" style="background: var(--soft-white); border: none; border-radius: 20px;">
-                <div class="card-body p-4">
-                    <form action="{{ route('messages.send', $conversation) }}" method="POST" enctype="multipart/form-data" id="message-form">
-                        @csrf
-                        <div class="row g-3">
-                            <div class="col-md-9">
-                                <textarea class="form-control" name="message" rows="2" placeholder="Type your message..." required style="border: 2px solid var(--light-grey); border-radius: 15px; padding: 12px;"></textarea>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="d-grid gap-2">
-                                    <button type="submit" class="btn" style="background: var(--gold-accent); color: var(--primary-dark); border-radius: 15px; padding: 12px; font-weight: 600;">
-                                        <i class="fas fa-paper-plane me-2"></i>Send
-                                    </button>
-                                    <label for="attachments" class="btn w-100" style="background: transparent; color: var(--primary-dark); border: 2px solid var(--light-grey); border-radius: 15px; padding: 12px; font-weight: 600;">
-                                        <i class="fas fa-paperclip me-2"></i>Attach Files
-                                        <input type="file" name="attachments[]" id="attachments" multiple class="d-none" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx">
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="file-preview" class="mt-2"></div>
-                    </form>
-                </div>
+            <!-- Message Input -->
+            <div class="chat-input-container">
+                <form id="messageForm" action="{{ route('messages.send', $conversation->id) }}" method="POST">
+                    @csrf
+                    <div class="input-group">
+                        <textarea name="message" class="form-control message-input" rows="1" placeholder="Type your message..." required></textarea>
+                        <button type="submit" class="btn-send">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-// Auto-scroll to bottom of messages
-document.addEventListener('DOMContentLoaded', function() {
-    const container = document.getElementById('messages-container');
-    container.scrollTop = container.scrollHeight;
-});
-
-// File preview
-document.getElementById('attachments').addEventListener('change', function(e) {
-    const preview = document.getElementById('file-preview');
-    preview.innerHTML = '';
+@push('styles')
+<style>
+    .chat-header {
+        background: white;
+        border-radius: 20px;
+        padding: 20px;
+        border: 1px solid var(--gray-200);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
     
-    for (let i = 0; i < this.files.length; i++) {
-        const file = this.files[i];
-        const div = document.createElement('div');
-        div.className = 'small text-muted mt-1';
-        div.innerHTML = '<i class="fas fa-paperclip me-1"></i>' + file.name;
-        preview.appendChild(div);
+    .btn-back {
+        width: 40px;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--gray-100);
+        border-radius: 50%;
+        color: var(--gray-700);
+        transition: all 0.2s;
     }
-});
+    
+    .btn-back:hover {
+        background: var(--brand-gold);
+        color: var(--brand-dark);
+    }
+    
+    .chat-avatar {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .chat-avatar img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--brand-gold);
+    }
+    
+    .job-reference {
+        font-size: 0.7rem;
+        color: var(--gray-500);
+        margin-top: 4px;
+    }
+    
+    .chat-container {
+        background: white;
+        border-radius: 20px;
+        border: 1px solid var(--gray-200);
+        height: 500px;
+        overflow-y: auto;
+        margin-bottom: 20px;
+    }
+    
+    .messages-list {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .message {
+        display: flex;
+        gap: 12px;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    .message.sent {
+        justify-content: flex-end;
+    }
+    
+    .message.received {
+        justify-content: flex-start;
+    }
+    
+    .message-avatar {
+        width: 36px;
+        height: 36px;
+        flex-shrink: 0;
+    }
+    
+    .message-avatar img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .message-content {
+        max-width: 70%;
+    }
+    
+    .message.sent .message-content {
+        text-align: right;
+    }
+    
+    .message-bubble {
+        background: var(--gray-100);
+        padding: 10px 16px;
+        border-radius: 18px;
+        display: inline-block;
+    }
+    
+    .message.sent .message-bubble {
+        background: var(--brand-gold);
+        color: var(--brand-dark);
+    }
+    
+    .message.received .message-bubble {
+        background: var(--gray-100);
+        color: var(--gray-800);
+    }
+    
+    .message-bubble p {
+        font-size: 0.9rem;
+        line-height: 1.4;
+        word-break: break-word;
+    }
+    
+    .message-time {
+        font-size: 0.65rem;
+        color: var(--gray-500);
+        margin-top: 4px;
+    }
+    
+    .chat-input-container {
+        background: white;
+        border-radius: 20px;
+        border: 1px solid var(--gray-200);
+        padding: 16px 20px;
+    }
+    
+    .message-input {
+        border: 1px solid var(--gray-300);
+        border-radius: 24px;
+        padding: 12px 16px;
+        resize: none;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+    
+    .message-input:focus {
+        border-color: var(--brand-gold);
+        box-shadow: 0 0 0 3px rgba(201, 165, 59, 0.1);
+        outline: none;
+    }
+    
+    .btn-send {
+        background: var(--brand-gold);
+        border: none;
+        border-radius: 50%;
+        width: 44px;
+        height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--brand-dark);
+        transition: all 0.2s;
+        margin-left: 12px;
+    }
+    
+    .btn-send:hover {
+        background: var(--brand-gold-dark);
+        transform: translateY(-2px);
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Scrollbar */
+    .chat-container::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .chat-container::-webkit-scrollbar-track {
+        background: var(--gray-200);
+        border-radius: 3px;
+    }
+    
+    .chat-container::-webkit-scrollbar-thumb {
+        background: var(--brand-gold);
+        border-radius: 3px;
+    }
+</style>
+@endpush
 
-// Submit form with Enter key (but allow Shift+Enter for new line)
-document.querySelector('textarea[name="message"]').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        document.getElementById('message-form').submit();
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('messagesContainer');
+    const form = document.getElementById('messageForm');
+    const messageInput = document.querySelector('.message-input');
+    const messagesList = document.querySelector('.messages-list');
+    
+    // Scroll to bottom on load
+    if (container) {
+        container.scrollTop = container.scrollHeight;
     }
+    
+    // Function to add a message to the chat
+    function addMessageToChat(message, isSent, userName, userAvatar) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+        messageDiv.setAttribute('data-message-id', message.id);
+        
+        if (!isSent) {
+            messageDiv.innerHTML = `
+                <div class="message-avatar">
+                    <img src="${userAvatar}" alt="${userName}">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        <p class="mb-0">${escapeHtml(message.content)}</p>
+                    </div>
+                    <div class="message-time">${message.created_at}</div>
+                </div>
+            `;
+        } else {
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    <div class="message-bubble">
+                        <p class="mb-0">${escapeHtml(message.content)}</p>
+                    </div>
+                    <div class="message-time">${message.created_at}</div>
+                </div>
+            `;
+        }
+        
+        messagesList.appendChild(messageDiv);
+        container.scrollTop = container.scrollHeight;
+    }
+    
+    // Handle form submission
+    if (form) {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const message = messageInput.value.trim();
+            if (!message) {
+                showNotification('Please enter a message', 'error');
+                return;
+            }
+            
+            const submitBtn = this.querySelector('.btn-send');
+            const originalHtml = submitBtn.innerHTML;
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
+            try {
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Add the sent message to chat
+                    addMessageToChat(data.message, true, null, null);
+                    
+                    // Clear input
+                    messageInput.value = '';
+                    
+                    // Focus back on input
+                    messageInput.focus();
+                } else {
+                    throw new Error(data.error || 'Failed to send message');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification(error.message || 'Failed to send message. Please try again.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalHtml;
+            }
+        });
+    }
+    
+    // Function to escape HTML
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // Function to show notifications
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show`;
+        notification.style.position = 'fixed';
+        notification.style.top = '20px';
+        notification.style.right = '20px';
+        notification.style.zIndex = '9999';
+        notification.style.minWidth = '300px';
+        notification.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+    
+    // Optional: Auto-refresh messages every few seconds (for real-time)
+    let lastMessageId = document.querySelector('.message:last-child')?.dataset.messageId || 0;
+    
+    async function checkForNewMessages() {
+        try {
+            const response = await fetch(`/messages/${conversationId}/check-new`, {
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
+                }
+            });
+            const data = await response.json();
+            
+            if (data.messages && data.messages.length > 0) {
+                data.messages.forEach(message => {
+                    if (message.user.id !== {{ Auth::id() }}) {
+                        addMessageToChat(message, false, message.user.name, message.user.avatar);
+                    }
+                });
+                lastMessageId = data.messages[data.messages.length - 1]?.id || lastMessageId;
+            }
+        } catch (error) {
+            console.error('Error checking for new messages:', error);
+        }
+    }
+    
+    // Check for new messages every 5 seconds (optional)
+    // setInterval(checkForNewMessages, 5000);
 });
 </script>
+@endpush
 @endsection

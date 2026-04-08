@@ -91,7 +91,7 @@ class ClientDashboardController extends Controller
         $bid->update(['status' => 'accepted']);
         
         // Reject all other bids for this job
-        Bid::where('project_job_id', $bid->job->id)
+        Bid::where('project_job_id', $bid->project_job_id)
             ->where('id', '!=', $bidId)
             ->update(['status' => 'rejected']);
         

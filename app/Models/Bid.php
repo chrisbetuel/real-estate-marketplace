@@ -12,12 +12,14 @@ class Bid extends Model
     protected $table = 'bids';
 
     protected $fillable = [
-        'project_job_id',  // This matches your database column
+        'project_job_id',
         'professional_id',
-        'amount',           // This matches your database column
-        'estimated_days',   // This matches your database column
+        'amount',
+        'estimated_days',
         'proposal',
         'status',
+        'transaction_id',
+        'escrow_id',
     ];
 
     protected $casts = [
@@ -35,6 +37,22 @@ class Bid extends Model
     public function professional()
     {
         return $this->belongsTo(User::class, 'professional_id');
+    }
+
+    // Alias for controller compatibility
+    public function bidder()
+    {
+        return $this->professional();
+    }
+
+    public function transaction()
+    {
+        return $this->belongsTo(Transaction::class, 'transaction_id');
+    }
+
+    public function escrowHold()
+    {
+        return $this->belongsTo(EscrowHold::class, 'escrow_id');
     }
 
     // Alias for compatibility

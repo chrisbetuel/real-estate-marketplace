@@ -47,12 +47,50 @@ class Job extends Model
     // Relationship with bids
     public function bids()
     {
-        return $this->hasMany(Bid::class, 'job_id');
+        return $this->hasMany(Bid::class, 'project_job_id');
     }
 
-    // Alias for client relationship (for compatibility)
+// Alias for client relationship (for compatibility)
     public function user()
     {
         return $this->belongsTo(User::class, 'client_id');
+    }
+
+    public function escrowHold()
+    {
+        return $this->hasOne(EscrowHold::class, 'job_id');
+    }
+
+    public function transaction()
+    {
+        return $this->hasOne(Transaction::class, 'project_job_id');
+    }
+
+    /**
+     * Accessor for required_skills - robustly handle JSON, comma-separated, or plain strings
+     */
+    public function getRequiredSkillsAttribute($value)
+    {
+        if (empty($value)) {
+            return [];
+        }
+
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if (is_string($value)) {
+            // Try JSON first
+            $decoded = json_decode($value, true);
+            if ($decoded !== null && is_array($decoded)) {
+                return array_map('trim', $decoded);
+            }
+
+            // Fallback: split by common delimiters
+            $skills = preg_split('/[,;|]/', $value);
+            return array_map('trim', array_filter($skills));
+        }
+
+        return [];
     }
 }

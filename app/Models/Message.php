@@ -10,12 +10,16 @@ class Message extends Model
     use HasFactory;
 
     protected $fillable = [
-        'conversation_id', 'sender_id', 'message',
-        'attachments', 'is_read', 'type'
+        'conversation_id',
+        'sender_id',
+        'user_id',
+        'message',
+        'is_read',
+        'attachments',
+        'type'
     ];
 
     protected $casts = [
-        'attachments' => 'array',
         'is_read' => 'boolean',
     ];
 
@@ -27,5 +31,10 @@ class Message extends Model
     public function sender()
     {
         return $this->belongsTo(User::class, 'sender_id');
+    }
+
+    public function user()
+    {
+        return $this->sender();
     }
 }

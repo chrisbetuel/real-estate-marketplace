@@ -22,11 +22,9 @@
                 <div class="col-md-2">
                     <select name="property_type" class="form-select">
                         <option value="">All Types</option>
-                        <option value="house" {{ request('property_type') == 'house' ? 'selected' : '' }}>House</option>
-                        <option value="apartment" {{ request('property_type') == 'apartment' ? 'selected' : '' }}>Apartment</option>
-                        <option value="condo" {{ request('property_type') == 'condo' ? 'selected' : '' }}>Condo</option>
-                        <option value="townhouse" {{ request('property_type') == 'townhouse' ? 'selected' : '' }}>Townhouse</option>
-                        <option value="land" {{ request('property_type') == 'land' ? 'selected' : '' }}>Land</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->slug }}" {{ request('property_type') == $category->slug ? 'selected' : '' }}>{{ $category->name }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="col-md-2">

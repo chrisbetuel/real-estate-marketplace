@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Oweru Real Estate')</title>
+    <title>@yield('title', 'BuildConnect - Professional Marketplace')</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -19,12 +19,12 @@
     <script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') ?? '' }}&libraries=places"></script>
     
     <style>
-        /* Oweru Brand Colors */
+        /* BuildConnect Brand Colors */
         :root {
-            --oweru-dark: #0F172A;
-            --oweru-gold: #C9A53B;
-            --oweru-gold-light: #d9b854;
-            --oweru-gold-dark: #b8932a;
+            --brand-dark: #0F172A;
+            --brand-gold: #C9A53B;
+            --brand-gold-light: #d9b854;
+            --brand-gold-dark: #b8932a;
             --white: #FFFFFF;
             --gray-50: #F8FAFC;
             --gray-100: #F1F5F9;
@@ -60,7 +60,7 @@
         h1, h2, h3, h4, h5, h6 {
             font-weight: 600;
             letter-spacing: -0.02em;
-            color: var(--oweru-dark);
+            color: var(--brand-dark);
             margin-bottom: 1rem;
         }
         
@@ -83,35 +83,35 @@
         .navbar-brand {
             font-weight: 700;
             font-size: 1.5rem;
-            color: var(--oweru-dark) !important;
+            color: var(--brand-dark) !important;
             display: flex;
             align-items: center;
             gap: 8px;
         }
         
-        .oweru-logo {
+        .brand-logo {
             height: 38px;
             width: auto;
         }
         
         .navbar-brand span {
-            color: var(--oweru-gold);
+            color: var(--brand-gold);
         }
         
         .nav-link {
             font-weight: 500;
             font-size: 0.9rem;
             color: var(--gray-600) !important;
-            padding: 24px 20px !important;
+            padding: 24px 18px !important;
             transition: color 0.2s ease;
         }
         
         .nav-link:hover {
-            color: var(--oweru-gold) !important;
+            color: var(--brand-gold) !important;
         }
         
         .nav-link.active {
-            color: var(--oweru-gold) !important;
+            color: var(--brand-gold) !important;
             position: relative;
         }
         
@@ -119,10 +119,10 @@
             content: '';
             position: absolute;
             bottom: 0;
-            left: 20px;
-            right: 20px;
+            left: 18px;
+            right: 18px;
             height: 2px;
-            background: var(--oweru-gold);
+            background: var(--brand-gold);
         }
         
         /* Buttons */
@@ -138,14 +138,14 @@
         }
         
         .btn-outline:hover {
-            border-color: var(--oweru-gold);
-            color: var(--oweru-gold);
+            border-color: var(--brand-gold);
+            color: var(--brand-gold);
         }
         
         .btn-primary-custom {
-            background: var(--oweru-gold);
+            background: var(--brand-gold);
             border: none;
-            color: var(--oweru-dark);
+            color: var(--brand-dark);
             padding: 8px 28px;
             border-radius: 8px;
             font-weight: 500;
@@ -154,7 +154,7 @@
         }
         
         .btn-primary-custom:hover {
-            background: var(--oweru-gold-dark);
+            background: var(--brand-gold-dark);
             transform: translateY(-1px);
         }
         
@@ -186,7 +186,7 @@
             height: 34px;
             border-radius: 50%;
             object-fit: cover;
-            border: 1.5px solid var(--oweru-gold);
+            border: 1.5px solid var(--brand-gold);
         }
         
         .user-name {
@@ -219,7 +219,7 @@
         
         .dropdown-item:hover {
             background: var(--gray-50);
-            color: var(--oweru-gold);
+            color: var(--brand-gold);
             padding-left: 24px;
         }
         
@@ -229,7 +229,7 @@
             color: var(--gray-500);
         }
         
-        /* Cards - Unified Oweru Style */
+        /* Cards */
         .card {
             background: var(--white);
             border: 1px solid var(--gray-200);
@@ -249,107 +249,11 @@
             border-bottom: 1px solid var(--gray-200);
             padding: 1rem 1.5rem;
             font-weight: 600;
-            color: var(--oweru-dark);
+            color: var(--brand-dark);
         }
         
         .card-body {
             padding: 1.5rem;
-        }
-        
-        .card-footer {
-            background: var(--white);
-            border-top: 1px solid var(--gray-200);
-            padding: 1rem 1.5rem;
-        }
-        
-        /* Stats Cards - Oweru Style */
-        .stat-card {
-            background: var(--white);
-            border: 1px solid var(--gray-200);
-            border-radius: 16px;
-            padding: 1.5rem;
-            transition: all 0.2s;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px -6px rgba(0,0,0,0.08);
-        }
-        
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--oweru-gold);
-            line-height: 1.2;
-            margin-bottom: 0.5rem;
-        }
-        
-        .stat-label {
-            font-size: 0.85rem;
-            color: var(--gray-600);
-            font-weight: 500;
-        }
-        
-        /* Job Card */
-        .job-card {
-            background: var(--white);
-            border: 1px solid var(--gray-200);
-            border-radius: 16px;
-            padding: 1.5rem;
-            transition: all 0.2s;
-            height: 100%;
-        }
-        
-        .job-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px -6px rgba(0,0,0,0.08);
-        }
-        
-        .job-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--oweru-dark);
-            margin-bottom: 0.75rem;
-        }
-        
-        .job-meta {
-            font-size: 0.8rem;
-            color: var(--gray-500);
-            margin-bottom: 1rem;
-        }
-        
-        .job-price {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--oweru-gold);
-            margin-bottom: 1rem;
-        }
-        
-        /* Bid Card */
-        .bid-card {
-            background: var(--white);
-            border: 1px solid var(--gray-200);
-            border-radius: 16px;
-            padding: 1.25rem;
-            margin-bottom: 1rem;
-            transition: all 0.2s;
-        }
-        
-        .bid-card:hover {
-            background: var(--gray-50);
-        }
-        
-        .bid-card.accepted {
-            border-left: 3px solid var(--success);
-        }
-        
-        .bid-card.pending {
-            border-left: 3px solid var(--warning);
-        }
-        
-        .bid-card.rejected {
-            border-left: 3px solid var(--danger);
-            opacity: 0.7;
         }
         
         /* Badges */
@@ -370,14 +274,9 @@
             color: var(--warning);
         }
         
-        .badge-info {
-            background: #EFF6FF;
-            color: #2563EB;
-        }
-        
         .badge-gold {
             background: rgba(201, 165, 59, 0.1);
-            color: var(--oweru-gold);
+            color: var(--brand-gold);
         }
         
         /* Alerts */
@@ -400,32 +299,6 @@
             border-left: 3px solid var(--danger);
         }
         
-        /* Tables */
-        .table {
-            margin-bottom: 0;
-        }
-        
-        .table th {
-            font-weight: 600;
-            font-size: 0.8rem;
-            color: var(--gray-600);
-            border-bottom: 1px solid var(--gray-200);
-            padding: 1rem;
-            background: var(--white);
-        }
-        
-        .table td {
-            padding: 1rem;
-            vertical-align: middle;
-            border-bottom: 1px solid var(--gray-200);
-            color: var(--gray-700);
-            background: var(--white);
-        }
-        
-        .table tr:hover td {
-            background: var(--gray-50);
-        }
-        
         /* Pagination */
         .pagination {
             gap: 6px;
@@ -443,14 +316,14 @@
         
         .page-link:hover {
             background: var(--gray-50);
-            border-color: var(--oweru-gold);
-            color: var(--oweru-gold);
+            border-color: var(--brand-gold);
+            color: var(--brand-gold);
         }
         
         .active .page-link {
-            background: var(--oweru-gold);
-            border-color: var(--oweru-gold);
-            color: var(--oweru-dark);
+            background: var(--brand-gold);
+            border-color: var(--brand-gold);
+            color: var(--brand-dark);
         }
         
         /* Forms */
@@ -463,7 +336,7 @@
         }
         
         .form-control:focus, .form-select:focus {
-            border-color: var(--oweru-gold);
+            border-color: var(--brand-gold);
             box-shadow: 0 0 0 3px rgba(201, 165, 59, 0.1);
             outline: none;
         }
@@ -475,9 +348,9 @@
             margin-bottom: 0.5rem;
         }
         
-        /* Footer */
+        /* Footer Styles */
         .footer {
-            background: var(--oweru-dark);
+            background: var(--brand-dark);
             padding: 48px 0 32px;
             margin-top: 80px;
         }
@@ -493,7 +366,7 @@
         }
         
         .footer-logo span {
-            color: var(--oweru-gold);
+            color: var(--brand-gold);
         }
         
         .footer-logo img {
@@ -505,6 +378,34 @@
             font-size: 0.85rem;
             color: rgba(255,255,255,0.6);
             line-height: 1.6;
+        }
+        
+        .footer-products h6 {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--brand-gold);
+            margin-bottom: 12px;
+        }
+        
+        .product-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .product-list li {
+            margin-bottom: 8px;
+        }
+        
+        .product-list a {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .product-list a:hover {
+            color: var(--brand-gold);
         }
         
         .footer-links h5 {
@@ -531,7 +432,7 @@
         }
         
         .footer-links a:hover {
-            color: var(--oweru-gold);
+            color: var(--brand-gold);
         }
         
         .social-links a {
@@ -548,8 +449,30 @@
         }
         
         .social-links a:hover {
-            background: var(--oweru-gold);
-            color: var(--oweru-dark);
+            background: var(--brand-gold);
+            color: var(--brand-dark);
+        }
+        
+        .contact-info p {
+            margin-bottom: 8px;
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .contact-info i {
+            width: 20px;
+            color: var(--brand-gold);
+            margin-right: 8px;
+        }
+        
+        .contact-info a {
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .contact-info a:hover {
+            color: var(--brand-gold);
         }
         
         .footer-bottom {
@@ -559,14 +482,6 @@
             text-align: center;
             font-size: 0.75rem;
             color: rgba(255,255,255,0.4);
-        }
-        
-        /* Map */
-        #map {
-            height: 400px;
-            width: 100%;
-            border-radius: 16px;
-            border: 1px solid var(--gray-200);
         }
         
         /* Responsive */
@@ -586,10 +501,10 @@
         }
         
         /* Utilities */
-        .bg-oweru-dark { background: var(--oweru-dark); }
-        .bg-oweru-gold { background: var(--oweru-gold); }
-        .text-oweru-gold { color: var(--oweru-gold); }
-        .text-oweru-dark { color: var(--oweru-dark); }
+        .bg-brand-dark { background: var(--brand-dark); }
+        .bg-brand-gold { background: var(--brand-gold); }
+        .text-brand-gold { color: var(--brand-gold); }
+        .text-brand-dark { color: var(--brand-dark); }
         
         @stack('styles')
     </style>
@@ -599,8 +514,8 @@
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid navbar-container">
             <a class="navbar-brand" href="{{ route('home') }}">
-                <img src="{{ asset('logo-white.png') }}" alt="Oweru" class="oweru-logo">
-                Oweru<span>.</span>
+                <img src="{{ asset('logo-white.png') }}" alt="BuildConnect" class="brand-logo">
+                BuildConnect<span>.</span>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -613,14 +528,46 @@
                         <a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('properties.*') ? 'active' : '' }}" href="{{ route('properties.index') }}">Properties</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('professionals.*') ? 'active' : '' }}" href="{{ route('professionals.index') }}">Professionals</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('stores.*') ? 'active' : '' }}" href="{{ route('stores.index') }}">Stores</a>
+                        <a class="nav-link {{ request()->routeIs('shop.stores') ? 'active' : '' }}" href="{{ route('shop.stores') }}">Stores</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('shop.products') ? 'active' : '' }}" href="{{ route('shop.products') }}">Products</a>
+                    </li>
+                    
+                    @auth
+                        @if(Auth::user()->user_type == 'professional')
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('professional.dashboard') ? 'active' : '' }}" href="{{ route('professional.dashboard') }}">
+                                    Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('messages.*') ? 'active' : '' }}" href="{{ route('messages.index') }}" title="Messages">
+                                    <i class="fas fa-sms me-1"></i>
+                                </a>
+                            </li>
+                        @elseif(Auth::user()->user_type == 'client')
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('client.dashboard') ? 'active' : '' }}" href="{{ route('client.dashboard') }}">
+                                    Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('messages.*') ? 'active' : '' }}" href="{{ route('messages.index') }}" title="Messages">
+                                    <i class="fas fa-sms me-1"></i>
+                                </a>
+                            </li>
+                        @elseif(Auth::user()->user_type == 'store_owner')
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('store-owner.dashboard') ? 'active' : '' }}" href="{{ route('store-owner.dashboard') }}">
+                                    Dashboard
+                                </a>
+                            </li>
+                        @endif
+                    @endauth
                 </ul>
                 
                 @auth
@@ -649,6 +596,13 @@
                                     <li><a class="dropdown-item" href="{{ route('client.jobs') }}">
                                         <i class="fas fa-briefcase"></i> My Jobs
                                     </a></li>
+                                @elseif(Auth::user()->user_type == 'store_owner')
+                                    <li><a class="dropdown-item" href="{{ route('store-owner.dashboard') }}">
+                                        <i class="fas fa-chart-line"></i> Dashboard
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ route('store-owner.products') }}">
+                                        <i class="fas fa-box"></i> My Products
+                                    </a></li>
                                 @endif
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
@@ -675,19 +629,29 @@
     <!-- Main Content -->
     <main>
         @if(session('success'))
-            <div class="container mt-4">
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="container mt-3">
+                <div class="alert alert-success fade show sticky-top" role="alert" style="z-index: 1020;">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-check-circle me-3 fs-5"></i>
+                        <div>
+                            <strong>Success!</strong> {{ session('success') }}
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             </div>
         @endif
 
         @if(session('error'))
-            <div class="container mt-4">
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="container mt-3">
+                <div class="alert alert-danger fade show sticky-top" role="alert" style="z-index: 1020;">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-circle me-3 fs-5"></i>
+                        <div>
+                            <strong>Error!</strong> {{ session('error') }}
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             </div>
         @endif
@@ -695,55 +659,73 @@
         @yield('content')
     </main>
 
-    <!-- Footer -->
+    <!-- Updated Footer -->
     <footer class="footer">
         <div class="container">
             <div class="row">
-                <div class="col-md-4 mb-4 mb-md-0">
+                <!-- Column 1: BuildConnect Products -->
+                <div class="col-md-3 mb-4 mb-md-0">
                     <div class="footer-logo">
-                        <img src="{{ asset('logo-white.png') }}" alt="Oweru">
-                        Oweru<span>.</span>
+                        <img src="{{ asset('logo-white.png') }}" alt="BuildConnect">
+                        BuildConnect<span>.</span>
                     </div>
-                    <p class="footer-text">A professional marketplace connecting clients with verified real estate professionals and quality products.</p>
-                </div>
-                <div class="col-md-2 mb-4 mb-md-0">
-                    <div class="footer-links">
-                        <h5>Explore</h5>
-                        <ul>
-                            <li><a href="{{ route('properties.index') }}">Properties</a></li>
+                    <p class="footer-text">Connecting professionals with clients for real estate projects.</p>
+                    <div class="footer-products mt-3">
+                        <h6>Our Products</h6>
+                        <ul class="product-list">
                             <li><a href="{{ route('professionals.index') }}">Professionals</a></li>
-                            <li><a href="{{ route('stores.index') }}">Stores</a></li>
+                            <li><a href="{{ route('shop.stores') }}">Stores</a></li>
+                            <li><a href="{{ route('shop.products') }}">Products</a></li>
                         </ul>
                     </div>
                 </div>
-                <div class="col-md-2 mb-4 mb-md-0">
+                
+                <!-- Column 2: Company -->
+                <div class="col-md-3 mb-4 mb-md-0">
                     <div class="footer-links">
                         <h5>Company</h5>
                         <ul>
-                            <li><a href="{{ route('about') }}">About</a></li>
-                            <li><a href="{{ route('contact') }}">Contact</a></li>
-                            <li><a href="{{ route('terms') }}">Terms</a></li>
-                            <li><a href="{{ route('privacy') }}">Privacy</a></li>
+                            <li><a href="{{ route('about') }}">About Us</a></li>
+                            <li><a href="{{ route('our-story') }}">Our Story</a></li>
+                            <li><a href="{{ route('how-it-works') }}">How It Works</a></li>
+                            <li><a href="{{ route('team') }}">Our Team</a></li>
                         </ul>
                     </div>
                 </div>
-                <div class="col-md-4">
+                
+                <!-- Column 3: Legal -->
+                <div class="col-md-3 mb-4 mb-md-0">
                     <div class="footer-links">
-                        <h5>Connect</h5>
+                        <h5>Legal</h5>
+                        <ul>
+                            <li><a href="{{ route('terms') }}">Terms & Conditions</a></li>
+                            <li><a href="{{ route('privacy') }}">Privacy Policy</a></li>
+                            <li><a href="{{ route('copyright') }}">Copyright Policy</a></li>
+                            <li><a href="{{ route('disclaimer') }}">Disclaimer</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Column 4: Connect -->
+                <div class="col-md-3 mb-4 mb-md-0">
+                    <div class="footer-links">
+                        <h5>Connect With Us</h5>
                         <div class="social-links">
-                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                            <a href="#"><i class="fab fa-twitter"></i></a>
-                            <a href="#"><i class="fab fa-facebook-f"></i></a>
-                            <a href="#"><i class="fab fa-instagram"></i></a>
+                            <a href="#" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" target="_blank"><i class="fab fa-twitter"></i></a>
+                            <a href="#" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#" target="_blank"><i class="fab fa-instagram"></i></a>
                         </div>
-                        <p class="footer-text mt-3">
-                            <i class="far fa-envelope"></i> hello@oweru.com
-                        </p>
+                        <div class="contact-info mt-3">
+                            <p><i class="fas fa-envelope"></i> <a href="mailto:hello@buildconnect.com">hello@buildconnect.com</a></p>
+                            <p><i class="fas fa-phone"></i> <a href="tel:+255123456789">+255 123 456 789</a></p>
+                            <p><i class="fas fa-map-marker-alt"></i> Dar es Salaam, Tanzania</p>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>© {{ date('Y') }} Oweru. All rights reserved.</p>
+                <p>© {{ date('Y') }} <span>BuildConnect</span>. All rights reserved. Building better connections in real estate.</p>
             </div>
         </div>
     </footer>

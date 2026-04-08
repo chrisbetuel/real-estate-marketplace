@@ -66,7 +66,7 @@ class PropertyController extends Controller
             'bedrooms' => 'nullable|integer',
             'bathrooms' => 'nullable|numeric',
             'square_feet' => 'nullable|integer',
-            'property_type' => 'required|string',
+            'property_type' => 'required|exists:property_categories,slug',
             'status' => 'required|in:available,sold,pending',
             'user_id' => 'required|exists:users,id',
         ]);
@@ -117,7 +117,7 @@ class PropertyController extends Controller
             'bedrooms' => 'nullable|integer',
             'bathrooms' => 'nullable|numeric',
             'square_feet' => 'nullable|integer',
-            'property_type' => 'required|string',
+            'property_type' => 'required|exists:property_categories,slug',
             'status' => 'required|in:available,sold,pending',
             'user_id' => 'required|exists:users,id',
         ]);

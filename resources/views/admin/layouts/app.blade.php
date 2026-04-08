@@ -241,6 +241,11 @@
                     </a>
                 </li>
                 <li>
+                    <a href="{{ route('admin.property-categories.index') }}" class="{{ request()->routeIs('admin.property-categories.*') ? 'active' : '' }}">
+                        <i class="fas fa-list-ul"></i> Property Categories
+                    </a>
+                </li>
+                <li>
                     <a href="{{ route('admin.stores.index') }}" class="{{ request()->routeIs('admin.stores.*') ? 'active' : '' }}">
                         <i class="fas fa-store"></i> Store Management
                     </a>

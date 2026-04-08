@@ -9,30 +9,55 @@ class Conversation extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['job_id', 'store_id', 'product_id'];
+    protected $fillable = [
+        'job_id',
+        'status',
+        'last_message_at'
+    ];
+
+    protected $casts = [
+        'last_message_at' => 'datetime',
+    ];
+
+    public function job()
+    {
+        return $this->belongsTo(Job::class);
+    }
 
     public function participants()
     {
-        return $this->hasMany(ConversationParticipant::class);
+        return $this->belongsToMany(User::class, 'conversation_participants')
+                    ->withPivot('last_read_at')
+                    ->withTimestamps();
     }
 
     public function messages()
     {
-        return $this->hasMany(Message::class);
+        return $this->hasMany(Message::class, 'conversation_id')->orderBy('created_at', 'asc');
     }
 
-    public function job()
+    public function lastMessage()
     {
-        return $this->belongsTo(Job::class, 'job_id');
+        return $this->hasOne(Message::class, 'conversation_id')->latest();
     }
 
-    public function store()
+    public function unreadCountForUser($userId)
     {
-        return $this->belongsTo(Store::class, 'store_id');
+        $participant = $this->participants()->where('user_id', $userId)->first();
+        $lastReadAt = $participant ? $participant->pivot->last_read_at : null;
+        
+        $query = $this->messages()->where('user_id', '!=', $userId);
+        
+        if ($lastReadAt) {
+            $query->where('created_at', '>', $lastReadAt);
+        }
+        
+        return $query->count();
     }
-
-    public function product()
+    
+    public function markAsRead($userId)
     {
-        return $this->belongsTo(Product::class, 'product_id');
+        $this->participants()
+            ->updateExistingPivot($userId, ['last_read_at' => now()]);
     }
 }

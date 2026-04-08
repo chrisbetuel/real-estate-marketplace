@@ -46,11 +46,9 @@
                             <div class="col-md-4 mb-3">
                                 <label class="form-label">Property Type <span class="text-danger">*</span></label>
                                 <select name="property_type" class="form-select @error('property_type') is-invalid @enderror" required>
-                                    <option value="house" {{ old('property_type', $property->property_type) == 'house' ? 'selected' : '' }}>House</option>
-                                    <option value="apartment" {{ old('property_type', $property->property_type) == 'apartment' ? 'selected' : '' }}>Apartment</option>
-                                    <option value="condo" {{ old('property_type', $property->property_type) == 'condo' ? 'selected' : '' }}>Condo</option>
-                                    <option value="townhouse" {{ old('property_type', $property->property_type) == 'townhouse' ? 'selected' : '' }}>Townhouse</option>
-                                    <option value="land" {{ old('property_type', $property->property_type) == 'land' ? 'selected' : '' }}>Land</option>
+                                    @foreach($categories as $category)
+                                        <option value="{{ $category->slug }}" {{ old('property_type', $property->property_type) == $category->slug ? 'selected' : '' }}>{{ $category->name }}</option>
+                                    @endforeach
                                 </select>
                                 @error('property_type')
                                     <div class="invalid-feedback">{{ $message }}</div>

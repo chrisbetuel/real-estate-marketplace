@@ -28,11 +28,11 @@
                             <h6 class="mb-3">Contact Information</h6>
                             <div class="row mb-3">
                                 <div class="col-sm-3"><strong>Email:</strong></div>
-                                <div class="col-sm-9">{{ $professional->email }}</div>
+{{ $hasPaidUnlock ? $professional->email : $professional->masked_email ?? $professional->email }}
                             </div>
                             <div class="row mb-3">
                                 <div class="col-sm-3"><strong>Phone:</strong></div>
-                                <div class="col-sm-9">{{ $professional->phone ?? 'N/A' }}</div>
+{{ $hasPaidUnlock ? ($professional->phone ?? 'N/A') : ($professional->masked_phone ?? 'N/A') }}
                             </div>
                             <div class="row mb-3">
                                 <div class="col-sm-3"><strong>Address:</strong></div>
@@ -100,6 +100,17 @@
                             </div>
                         </div>
                     </div>
+                    @auth
+                        @if(auth()->user()->isClient() && !$hasPaidUnlock)
+                            <div class="alert alert-warning mt-4">
+                                <h6><i class="fas fa-lock me-2"></i>Contact details are locked</h6>
+                                <p class="mb-3">Pay $10 to unlock full email, phone and address details for this professional.</p>
+                                <a href="{{ route('payment.professional-unlock', $professional) }}" class="btn btn-warning btn-lg w-100">
+                                    <i class="fas fa-unlock me-2"></i> Unlock Full Details - $10
+                                </a>
+                            </div>
+                        @endif
+                    @endauth
                     <div class="mt-4">
                         <a href="{{ route('professionals.index') }}" class="btn btn-secondary">Back to Professionals</a>
                     </div>

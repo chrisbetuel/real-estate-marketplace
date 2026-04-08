@@ -35,7 +35,7 @@ class StoreController extends Controller
 
         $stores = $query->withCount('products')->paginate(12);
 
-        return view('stores.index', compact('stores'));
+        return view('store.index', compact('stores'));
     }
 
     public function myStore()
@@ -49,7 +49,7 @@ class StoreController extends Controller
 
         $products = $store->products()->paginate(12);
 
-        return view('stores.show', compact('store', 'products'));
+        return view('store.show', compact('store', 'products'));
     }
 
     public function create()
@@ -59,7 +59,7 @@ class StoreController extends Controller
                 ->with('error', 'Only store owners can register stores');
         }
 
-        return view('stores.create');
+        return view('store.create');
     }
 
     public function store(Request $request)
@@ -117,7 +117,7 @@ class StoreController extends Controller
             ->latest()
             ->paginate(12);
 
-        return view('stores.show', compact('store', 'products'));
+        return view('store.show', compact('store', 'products'));
     }
 
     public function edit(Store $store)
@@ -126,7 +126,7 @@ class StoreController extends Controller
             abort(403);
         }
 
-        return view('stores.edit', compact('store'));
+        return view('store.edit', compact('store'));
     }
 
     public function update(Request $request, Store $store)
@@ -194,7 +194,7 @@ class StoreController extends Controller
             'active_products' => $store->products()->where('is_available', true)->count(),
         ];
 
-        return view('stores.dashboard', compact('store', 'stats', 'recentProducts'));
+        return view('store.dashboard', compact('store', 'stats', 'recentProducts'));
     }
 
     public function products(Store $store)
@@ -203,7 +203,7 @@ class StoreController extends Controller
             ->latest()
             ->paginate(12);
 
-        return view('stores.products', compact('store', 'products'));
+        return view('store.products', compact('store', 'products'));
     }
 }
 

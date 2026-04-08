@@ -16,9 +16,11 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Call other seeders first
-        $this->call([
+$this->call([
             AdminSeeder::class,
+            PropertyCategorySeeder::class,
             LocationsTableSeeder::class,
+            ProfessionalDemoSeeder::class,
         ]);
 
         // Create admin user
@@ -177,3 +179,4 @@ class DatabaseSeeder extends Seeder
         $this->command->info('Database seeded successfully!');
     }
 }
+

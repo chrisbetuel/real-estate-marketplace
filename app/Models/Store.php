@@ -76,4 +76,14 @@ class Store extends Model
     {
         return $query->where('is_verified', true);
     }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    public function escrowHolds()
+    {
+        return $this->hasMany(EscrowHold::class);
+    }
 }

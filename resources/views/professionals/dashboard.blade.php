@@ -7,7 +7,12 @@
     <div class="row mb-4">
         <div class="col-12">
             <h1 class="display-5 mb-2">Welcome back, {{ Auth::user()->name }}!</h1>
-            <p class="text-muted">Manage your bids and track your projects</p>
+            <p class="text-muted d-flex align-items-center gap-3">
+                Manage your bids and track your projects
+                <a href="{{ route('messages.index') }}" class="btn btn-outline-warning btn-sm" title="Messages">
+                    <i class="fas fa-sms me-1"></i>{{ $unreadCount ?? 0 }}
+                </a>
+            </p>
         </div>
     </div>
 
@@ -65,6 +70,7 @@
                 </div>
             </div>
         </div>
+
     </div>
 
     <div class="row">

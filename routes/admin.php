@@ -34,6 +34,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('jobs', \App\Http\Controllers\Admin\JobController::class);
         Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
         Route::resource('stores', \App\Http\Controllers\Admin\StoreController::class);
+        Route::resource('property-categories', \App\Http\Controllers\Admin\PropertyCategoryController::class);
         Route::get('settings', function () {
             return view('admin.settings');
         })->name('settings');
@@ -44,3 +45,4 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::patch('stores/{store}/toggle-verification', [\App\Http\Controllers\Admin\StoreController::class, 'toggleVerification'])->name('stores.toggle-verification');
     });
 });
+

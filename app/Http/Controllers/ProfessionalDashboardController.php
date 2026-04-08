@@ -14,7 +14,7 @@ class ProfessionalDashboardController extends Controller
         $professional = Auth::user();
         
         // Get all bids submitted by this professional
-        $bids = Bid::where('professional_id', $professional->id)
+$bids = Bid::where('professional_id', $professional->id)
             ->with(['job', 'job.client'])
             ->latest()
             ->get();
@@ -33,6 +33,13 @@ class ProfessionalDashboardController extends Controller
                 ->where('status', 'completed')
                 ->count(),
         ];
+
+$unreadCount = \App\Models\Message::whereHas('conversation', function($query) {
+            $query->whereHas('participants', function($p) {
+                $p->where('user_id', Auth::id());
+            });
+        })->where('is_read', false)
+          ->count();
         
         // Recommended jobs
         $recommendedJobs = Job::where('status', 'open')
@@ -42,7 +49,7 @@ class ProfessionalDashboardController extends Controller
             ->take(5)
             ->get();
         
-        return view('professional.dashboard', compact('bids', 'stats', 'recommendedJobs'));
+        return view('professional.dashboard', compact('bids', 'stats', 'recommendedJobs', 'unreadCount'));
     }
     
     public function bids()

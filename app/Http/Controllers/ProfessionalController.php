@@ -2,63 +2,109 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\ProfessionalProfile;
-use App\Models\Job;
-use App\Models\Bid;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use App\Models\ProfessionalProfile;
 
 class ProfessionalController extends Controller
 {
-    public function index(Request $request)
+    public function __construct()
     {
-        $query = User::with(['professionalProfile'])
-            ->where('user_type', 'professional');
+        $this->middleware('auth');
+    }
 
-        if ($request->filled('search')) {
-            $query->where(function($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('email', 'like', '%' . $request->search . '%');
-            });
-        }
-
-        $professionals = $query->latest()->paginate(15);
-
+    public function index()
+    {
+        $professionals = \App\Models\ProfessionalProfile::with('user')->paginate(12);
         return view('professionals.index', compact('professionals'));
     }
 
-    public function show(User $professional)
+    public function show(ProfessionalProfile $professional)
     {
-        $professional->load(['professionalProfile']);
-        return view('professionals.show', compact('professional'));
+        $professional->load('user');
+        $user = $professional->user;
+        $hasPaidUnlock = false;
+        return view('professionals.show', [
+            'professional' => $user,
+            'hasPaidUnlock' => $hasPaidUnlock
+        ]);
     }
 
-    public function dashboard()
+    public function edit()
+    {
+        $user = Auth::user();
+        return view('profile.edit', compact('user'));
+    }
+
+    public function update(Request $request)
     {
         $user = Auth::user();
         
-        if ($user->user_type !== 'professional') {
-            return redirect()->route('dashboard')
-                ->with('error', 'Access denied. This area is for professionals only.');
-        }
-
-$user->load(['professionalProfile']);
-        $profile = $user->professionalProfile;
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
+            'current_password' => 'nullable|required_with:new_password',
+            'new_password' => 'nullable|string|min:8|confirmed',
+        ]);
         
-        $stats = [
-            'total_jobs' => $user->assignedJobs()->count(),
-            'active_jobs' => $user->assignedJobs()->where('status', 'in_progress')->count(),
-            'total_bids' => $user->bids()->count(),
-'completed_jobs' => $user->completed_jobs_count,
-'avg_rating' => round($user->rating, 1),
-        ];
+        // Update user basic info
+        $user->name = $validated['name'];
+        $user->phone = $validated['phone'];
+        $user->address = $validated['address'];
+        
+        // Update password if provided
+        if ($request->filled('new_password')) {
+            if (!Hash::check($request->current_password, $user->password)) {
+                return back()->withErrors(['current_password' => 'Current password is incorrect']);
+            }
+            $user->password = Hash::make($request->new_password);
+        }
+        
+        $user->save();
+        
+        // Update professional profile if user is a professional
+        if ($user->user_type == 'professional') {
+            $professionalData = $request->validate([
+                'profession' => 'nullable|string',
+                'years_experience' => 'nullable|integer|min:0',
+                'hourly_rate' => 'nullable|numeric|min:0',
+                'bio' => 'nullable|string',
+            ]);
+            
+            $profile = ProfessionalProfile::updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'profession' => $professionalData['profession'],
+                    'years_experience' => $professionalData['years_experience'],
+                    'hourly_rate' => $professionalData['hourly_rate'],
+                    'bio' => $professionalData['bio'],
+                ]
+            );
+        }
+        
+        return redirect()->route('profile.show')->with('success', 'Profile updated successfully!');
+    }
 
-        $recentJobs = $user->assignedJobs()->latest()->take(5)->get();
-$recentBids = collect([]); // Disabled - no projectJob relation
-
-        return view('professionals.dashboard', compact('user', 'profile', 'stats', 'recentJobs', 'recentBids'));
+    public function uploadImage(Request $request)
+    {
+        $request->validate([
+            'profile_image' => 'required|image|mimes:jpeg,png,jpg|max:2048'
+        ]);
+        
+        $user = Auth::user();
+        
+        // Delete old image
+        if ($user->profile_image && Storage::disk('public')->exists($user->profile_image)) {
+            Storage::disk('public')->delete($user->profile_image);
+        }
+        
+        $path = $request->file('profile_image')->store('profile_images', 'public');
+        $user->profile_image = $path;
+        $user->save();
+        
+        return redirect()->back()->with('success', 'Profile picture updated!');
     }
 }
-

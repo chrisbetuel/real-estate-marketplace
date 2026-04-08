@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'client' => \App\Http\Middleware\ClientMiddleware::class,
             'professional' => \App\Http\Middleware\ProfessionalMiddleware::class,
             'store_owner' => \App\Http\Middleware\StoreOwnerMiddleware::class,
+            'check.payment' => \App\Http\Middleware\CheckConnectionPayment::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

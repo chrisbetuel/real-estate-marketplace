@@ -85,9 +85,14 @@
                                                         <h6 class="mb-0">{{ $bid->professional->name }}</h6>
                                                         <small class="text-muted">Member since {{ $bid->professional->created_at->format('M Y') }}</small>
                                                         <br>
-                                                        <small class="text-muted">
-                                                            <i class="fas fa-envelope me-1"></i> {{ $bid->professional->email }}
+<small class="text-muted">
+                                                            <i class="fas fa-envelope me-1"></i> {{ $hasPaidConnection ? $bid->professional->email : $bid->professional->masked_email ?? '***@***' }}
                                                         </small>
+                                                        @if($bid->escrowHold)
+                                                            <br><small class="text-info">
+                                                                <i class="fas fa-lock me-1"></i> Escrow: {{ ucfirst($bid->escrowHold->status) }} ${{ number_format($bid->escrowHold->amount) }}
+                                                            </small>
+                                                        @endif
                                                     </div>
                                                 @else
                                                     <div class="rounded-circle bg-secondary me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">

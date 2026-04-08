@@ -21,7 +21,32 @@ class User extends Authenticatable
 
     public function store()
     {
-        return $this->hasOne(Store::class);
+        return $this->hasOne(Store::class, 'owner_id');
+    }
+
+    /**
+     * Get conversations where user is a participant
+     */
+    public function conversations()
+    {
+        return $this->belongsToMany(Conversation::class, 'conversation_participants')
+                    ->withTimestamps()
+                    ->latest('updated_at');
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'reviewee_id');
+    }
+
+    public function getRatingAttribute()
+    {
+        return $this->reviews()->avg('rating') ?? 4.8;
+    }
+
+    public function getReviewsCountAttribute()
+    {
+        return $this->reviews()->count();
     }
 
     protected $fillable = [
@@ -76,4 +101,24 @@ class User extends Authenticatable
     {
         return $this->user_type === 'professional';
     }
+
+    /**
+     * Get masked email for unpaid connections
+     */
+    public function getMaskedEmailAttribute()
+    {
+        [$local, $domain] = explode('@', $this->email, 2);
+        return substr($local, 0, 3) . '***@' . $domain;
+    }
+
+    /**
+     * Get masked phone for unpaid connections
+     */
+    public function getMaskedPhoneAttribute()
+    {
+        if (!$this->phone) return null;
+        $phone = preg_replace('/[^0-9]/', '', $this->phone);
+        return substr($phone, 0, 3) . '***' . substr($phone, -4);
+    }
 }
+
