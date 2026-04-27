@@ -35,8 +35,7 @@ class StoreFrontController extends Controller
     {
         // Get store with products - only show active products with stock
         $store = Store::with(['products' => function($query) {
-            $query->where('is_active', true)
-                  ->where('stock', '>', 0)
+            $query->available()
                   ->latest();
         }])->findOrFail($id);
         
@@ -50,7 +49,7 @@ class StoreFrontController extends Controller
                     'id' => $product->id,
                     'name' => $product->name,
                     'is_active' => $product->is_active,
-                    'stock' => $product->stock,
+                    'quantity' => $product->quantity,
                     'price' => $product->price
                 ];
             })->toArray()
@@ -64,9 +63,8 @@ class StoreFrontController extends Controller
      */
     public function products(Request $request)
     {
-        $query = Product::where('is_active', true)
-            ->with('store')
-            ->where('stock', '>', 0);
+        $query = Product::available()
+            ->with('store');
         
         // Search
         if ($request->filled('search')) {
@@ -121,8 +119,7 @@ class StoreFrontController extends Controller
         // Related products
         $relatedProducts = Product::where('category', $product->category)
             ->where('id', '!=', $product->id)
-            ->where('is_active', true)
-            ->where('stock', '>', 0)
+            ->available()
             ->limit(4)
             ->get();
         
@@ -150,7 +147,7 @@ class StoreFrontController extends Controller
             return redirect()->back()->with('error', 'Product is not available.');
         }
         
-        if ($product->stock <= 0) {
+        if ($product->quantity <= 0) {
             if ($request->ajax()) {
                 return response()->json(['error' => 'Product is out of stock.'], 400);
             }
@@ -226,7 +223,7 @@ class StoreFrontController extends Controller
             ->findOrFail($cartItemId);
         
         $request->validate([
-            'quantity' => 'required|integer|min:1|max:' . $cartItem->product->stock,
+            'quantity' => 'required|integer|min:1|max:' . $cartItem->product->quantity,
         ]);
         
         $cartItem->update(['quantity' => $request->quantity]);
@@ -478,9 +475,28 @@ class StoreFrontController extends Controller
             abort(403);
         }
         
-        $order->load(['items.product', 'store', 'escrowHold']);
+        $order->load(['items.product', 'store', 'escrowHold', 'driver.user']);
         
         return view('store-front.order-details', compact('order'));
+    }
+
+    /**
+     * Track order delivery route
+     */
+    public function trackOrder(Order $order)
+    {
+        if ($order->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if (!$order->driver) {
+            return redirect()->route('shop.order-details', $order)
+                ->with('error', 'No driver assigned to this order yet.');
+        }
+
+        $order->load(['driver.user', 'store']);
+        
+        return view('shop.order-track', compact('order'));
     }
 
     /**

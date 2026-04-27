@@ -15,9 +15,41 @@ class ProfessionalController extends Controller
         $this->middleware('auth');
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $professionals = \App\Models\ProfessionalProfile::with('user')->paginate(12);
+        $query = \App\Models\User::with(['professionalProfile'])
+            ->where('user_type', 'professional');
+
+        if ($request->filled('keyword') || $request->filled('search')) {
+            $searchTerm = trim($request->filled('keyword') ? $request->keyword : $request->search);
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('name', 'like', '%' . $searchTerm . '%')
+                  ->orWhereHas('professionalProfile', function($q2) use ($searchTerm) {
+                      $q2->where('profession', 'like', '%' . $searchTerm . '%')
+                         ->orWhere('bio', 'like', '%' . $searchTerm . '%');
+                  });
+            });
+        }
+
+        if ($request->filled('category')) {
+            $query->whereHas('professionalProfile', function($q) use ($request) {
+                $q->where('profession', $request->category);
+            });
+        }
+
+        // Geo filtering
+        if ($request->filled(['lat', 'lng'])) {
+            $lat = $request->lat;
+            $lng = $request->lng;
+            $radius = $request->radius ?? 50;
+            
+            $query->whereHas('professionalProfile', function ($q) use ($lat, $lng, $radius) {
+                $q->nearby($lat, $lng, $radius);
+            });
+        }
+
+        $professionals = $query->latest()->paginate(12);
+
         return view('professionals.index', compact('professionals'));
     }
 

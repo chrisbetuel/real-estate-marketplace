@@ -25,6 +25,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Driver relationship
+     */
+    public function driver()
+    {
+        return $this->hasOne(Driver::class);
+    }
+
+    /**
      * Get conversations where user is a participant
      */
     public function conversations()
@@ -74,7 +82,7 @@ class User extends Authenticatable
 
     /**
      * Get the profile image URL
-     */
+     -->
     public function getProfileImageUrlAttribute()
     {
         if ($this->profile_image) {
@@ -87,8 +95,58 @@ class User extends Authenticatable
     }
     
     /**
-     * Check if user is a client
+     * POS shops owned by this user
      */
+    public function posShops()
+    {
+        return $this->hasMany(PosShop::class, 'owner_id');
+    }
+
+    /**
+     * POS shops where this user is staff
+     */
+    public function managedPosShops()
+    {
+        return $this->belongsToMany(PosShop::class, 'pos_shop_user')
+                    ->withPivot('role', 'is_active')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Check if user can access a specific POS shop
+     */
+    public function canAccessPosShop(PosShop $shop): bool
+    {
+        if ($shop->owner_id === $this->id) {
+            return true;
+        }
+
+        return $this->managedPosShops()
+            ->where('pos_shops.id', $shop->id)
+            ->wherePivot('is_active', true)
+            ->exists();
+    }
+
+    /**
+     * Get user's role in a specific POS shop
+     */
+    public function posShopRole(PosShop $shop): ?string
+    {
+        if ($shop->owner_id === $this->id) {
+            return 'admin';
+        }
+
+        $pivot = $this->managedPosShops()
+            ->where('pos_shops.id', $shop->id)
+            ->wherePivot('is_active', true)
+            ->first();
+
+        return $pivot?->pivot?->role;
+    }
+
+    /**
+     * Check if user is a client
+     -->
     public function isClient()
     {
         return $this->user_type === 'client';
@@ -100,6 +158,22 @@ class User extends Authenticatable
     public function isProfessional()
     {
         return $this->user_type === 'professional';
+    }
+
+    /**
+     * Check if user is a store owner
+     */
+    public function isStoreOwner()
+    {
+        return $this->user_type === 'store_owner' || $this->store;
+    }
+
+    /**
+     * Check if user is a driver
+     */
+    public function isDriver()
+    {
+        return $this->user_type === 'driver' || $this->driver;
     }
 
     /**

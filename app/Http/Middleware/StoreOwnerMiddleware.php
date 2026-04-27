@@ -11,7 +11,7 @@ class StoreOwnerMiddleware
     public function handle(Request $request, Closure $next)
     {
         if (Auth::check()) {
-            if (Auth::user()->user_type === 'store_owner') {
+            if (Auth::user()->isStoreOwner()) {
                 return $next($request);
             }
             

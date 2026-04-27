@@ -54,11 +54,11 @@ class Store extends Model
     }
 
     /**
-     * Get the reviews for the store
+     * Get the reviews for the store through its products
      */
     public function reviews()
     {
-        return $this->morphMany(Review::class, 'reviewable');
+        return $this->hasManyThrough(Review::class, Product::class);
     }
 
     /**
@@ -86,4 +86,13 @@ class Store extends Model
     {
         return $this->hasMany(EscrowHold::class);
     }
+
+    /**
+     * Drivers registered with this store
+     */
+    public function drivers()
+    {
+        return $this->hasMany(Driver::class);
+    }
 }
+

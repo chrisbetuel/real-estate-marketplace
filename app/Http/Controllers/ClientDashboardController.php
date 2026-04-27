@@ -127,15 +127,13 @@ $unreadCount = \App\Models\Message::whereHas('conversation', function($query) {
                 'assigned_professional_id' => $bid->professional_id
             ]);
 
-            // Create escrow for the bid amount
+            // Check wallet balance before transaction
             $amount = $bid->amount;
             $wallet = Auth::user()->wallet;
 
             if (!($wallet && $wallet->balance >= $amount)) {
-                throw new \Exception('Insufficient wallet balance. Please add funds or use external payment.');
+                return back()->with('error', 'Insufficient wallet balance. Please add funds or use external payment.');
             }
-
-            // Wallet payment
             $wallet->deductBalance($amount, 'Escrow for job ' . $bid->job->title);
 
             $transaction = Transaction::create([
@@ -184,6 +182,30 @@ $unreadCount = \App\Models\Message::whereHas('conversation', function($query) {
         return back()->with('success', 'Bid rejected successfully.');
     }
     
+    public function bids()
+    {
+        $clientId = Auth::id();
+
+        // Get all job IDs posted by this client
+        $jobIds = Job::where('client_id', $clientId)->pluck('id');
+
+        // Get all bids for these jobs
+        $bids = Bid::whereIn('project_job_id', $jobIds)
+            ->with(['job', 'professional'])
+            ->latest()
+            ->paginate(20);
+
+        // Statistics for the bids page
+        $stats = [
+            'total_bids' => Bid::whereIn('project_job_id', $jobIds)->count(),
+            'pending_bids' => Bid::whereIn('project_job_id', $jobIds)->where('status', 'pending')->count(),
+            'accepted_bids' => Bid::whereIn('project_job_id', $jobIds)->where('status', 'accepted')->count(),
+            'rejected_bids' => Bid::whereIn('project_job_id', $jobIds)->where('status', 'rejected')->count(),
+        ];
+
+        return view('client.bids', compact('bids', 'stats'));
+    }
+
     public function completeJob($jobId)
     {
         $job = Job::where('client_id', Auth::id())

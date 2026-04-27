@@ -7,6 +7,7 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class StoreController extends Controller
 {
@@ -105,6 +106,7 @@ class StoreController extends Controller
         $data['owner_id'] = Auth::id();
         
         $store = Store::create($data);
+        Auth::user()->update(['user_type' => 'store_owner']);
 
         return redirect()->route('stores.show', $store)
             ->with('success', 'Store registered successfully! Pending verification.');
@@ -113,7 +115,7 @@ class StoreController extends Controller
     public function show(Store $store)
     {
         $products = $store->products()
-            ->where('is_available', true)
+            ->where('is_active', true)
             ->latest()
             ->paginate(12);
 
@@ -135,44 +137,61 @@ class StoreController extends Controller
             abort(403);
         }
 
-        $validator = Validator::make($request->all(), [
+        $validated = $request->validate([
             'store_name' => 'required|string|max:255',
+            'store_email' => 'required|email|max:255',
             'store_phone' => 'required|string|max:20',
             'store_address' => 'required|string',
             'city' => 'required|string',
             'state' => 'required|string',
-            'zip_code' => 'required|string',
+            'postal_code' => 'required|string',
             'country' => 'nullable|string',
-            'logo' => 'nullable|image|max:2048',
-            'images.*' => 'image|max:2048',
-            'description' => 'nullable|string'
+            'specialization' => 'nullable|string',
+            'description' => 'nullable|string',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
+        // Map form fields to model attributes
+        $data = [
+            'name' => $validated['store_name'],
+            'email' => $validated['store_email'],
+            'phone' => $validated['store_phone'],
+            'address' => $validated['store_address'],
+            'city' => $validated['city'],
+            'state' => $validated['state'],
+            'zip_code' => $validated['postal_code'],
+            'description' => $validated['description'],
+        ];
 
-        $data = $request->except(['logo', 'images']);
-
+        // Handle logo upload
         if ($request->hasFile('logo')) {
-            $path = $request->file('logo')->store('store-logos', 'public');
+            if ($store->logo && Storage::disk('public')->exists($store->logo)) {
+                Storage::disk('public')->delete($store->logo);
+            }
+            $path = $request->file('logo')->store('stores/logos', 'public');
             $data['logo'] = $path;
         }
 
-        if ($request->hasFile('images')) {
-            $imagePaths = [];
-            foreach ($request->file('images') as $image) {
-                $imagePaths[] = $image->store('store-images', 'public');
-            }
-            $data['images'] = array_merge(($store->images ?? []), $imagePaths);
+        // Handle gallery images (json array)
+        if ($store->images) {
+            $currentImages = is_array($store->images) ? $store->images : json_decode($store->images, true) ?? [];
+        } else {
+            $currentImages = [];
         }
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $path = $image->store('stores/images', 'public');
+                $currentImages[] = $path;
+            }
+        }
+        $data['images'] = json_encode($currentImages);
 
         $store->update($data);
 
         return redirect()->route('stores.show', $store)
-            ->with('success', 'Store updated successfully');
+            ->with('success', 'Store updated successfully!');
     }
 
     public function dashboard()
@@ -191,7 +210,7 @@ class StoreController extends Controller
 
         $stats = [
             'total_products' => $store->products()->count(),
-            'active_products' => $store->products()->where('is_available', true)->count(),
+            'active_products' => $store->products()->where('is_active', true)->count(),
         ];
 
         return view('store.dashboard', compact('store', 'stats', 'recentProducts'));

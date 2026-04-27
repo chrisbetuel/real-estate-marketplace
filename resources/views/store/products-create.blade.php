@@ -37,7 +37,7 @@
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Stock Quantity *</label>
                                 <input type="number" name="stock" class="form-control @error('stock') is-invalid @enderror" 
-                                       value="{{ old('stock', 0) }}" min="0" required>
+                                       value="{{ old('stock', 10) }}" min="0" required>
                                 @error('stock')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror

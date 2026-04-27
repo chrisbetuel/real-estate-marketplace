@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Login - Oweru Real Estate Marketplace</title>
+    <title>Sign In - Oweru BuildConnect</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -13,17 +13,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800&family=Nunito:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     
     <style>
-        /* Brand Colors - Oweru Standard */
-        :root {
-            --primary-dark: #0F172A;
-            --soft-white: #F8F8F9;
-            --gold-accent: #C9A53B;
-            --light-grey: #E5E5E5;
-        }
-        
         * {
             margin: 0;
             padding: 0;
@@ -31,282 +23,384 @@
         }
         
         body {
-            font-family: 'Raleway', sans-serif;
-            background: linear-gradient(135deg, var(--primary-dark) 0%, #1e293b 50%, var(--light-grey) 100%);
+            font-family: 'Inter', sans-serif;
+            background: #F5F7FA;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--primary-dark);
-            padding: 20px;
-        }
-        
-        h1, h2, h3 {
-            font-family: 'Nunito', sans-serif;
-            font-weight: 700;
+            padding: 24px;
         }
         
         .login-card {
-            border: none;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.3);
-            overflow: hidden;
-            max-width: 450px;
+            max-width: 440px;
             width: 100%;
+            background: #FFFFFF;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            padding: 40px 32px;
         }
         
-        .login-header {
-            background: linear-gradient(135deg, var(--primary-dark) 0%, #1e293b 100%);
-            color: var(--soft-white);
-            padding: 40px 30px;
+        .logo {
             text-align: center;
-            position: relative;
-            overflow: hidden;
+            margin-bottom: 32px;
         }
         
-        .login-header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200px;
-            height: 200px;
-            background: rgba(201, 165, 59, 0.1);
-            border-radius: 50%;
-            animation: float 6s ease-in-out infinite;
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: #1E2A3A;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
         }
         
-        .login-header h1 {
-            font-size: 2.2rem;
-            margin: 0 0 10px 0;
-            font-weight: 800;
-            position: relative;
-            z-index: 1;
+        .logo-icon i {
+            font-size: 24px;
+            color: #F5A623;
         }
         
-        .login-header .gold-text {
-            color: var(--gold-accent) !important;
-        }
-        
-        .login-header p {
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1E2A3A;
             margin: 0;
-            opacity: 0.9;
-            position: relative;
-            z-index: 1;
         }
         
-        .login-body {
-            padding: 40px;
-            background: var(--soft-white);
+        .logo span {
+            color: #F5A623;
         }
         
-        .form-control, .input-group-text {
-            border-radius: 15px;
-            padding: 15px 20px;
-            border: 2px solid var(--light-grey);
-            transition: all 0.3s;
-            font-family: 'Raleway', sans-serif;
-            font-size: 1rem;
+        .logo p {
+            font-size: 14px;
+            color: #6B7280;
+            margin-top: 4px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+            display: block;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            border: 1px solid #D1D5DB;
+            border-radius: 8px;
+            transition: all 0.2s;
+            background: #FFFFFF;
         }
         
         .form-control:focus {
-            border-color: var(--gold-accent);
-            box-shadow: 0 0 0 4px rgba(201, 165, 59, 0.15);
+            outline: none;
+            border-color: #1E2A3A;
+            box-shadow: 0 0 0 3px rgba(30,42,58,0.1);
         }
         
-        .input-group-text {
-            background: var(--light-grey);
-            border-color: var(--light-grey);
-            color: var(--primary-dark);
+        .input-group {
+            position: relative;
         }
         
-        .btn-login {
-            background: linear-gradient(135deg, var(--gold-accent) 0%, #d4b567 100%);
+        .input-group .form-control {
+            padding-right: 40px;
+        }
+        
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
             border: none;
-            border-radius: 15px;
-            padding: 15px;
-            font-weight: 600;
-            color: var(--primary-dark);
-            width: 100%;
-            font-family: 'Raleway', sans-serif;
-            font-size: 1.1rem;
-            transition: all 0.3s;
-            box-shadow: 0 5px 15px rgba(201, 165, 59, 0.3);
+            color: #9CA3AF;
+            cursor: pointer;
+            font-size: 14px;
         }
         
-        .btn-login:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(201, 165, 59, 0.4);
-            color: var(--primary-dark);
+        .toggle-password:hover {
+            color: #6B7280;
+        }
+        
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .checkbox input {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+            cursor: pointer;
+        }
+        
+        .checkbox label {
+            font-size: 13px;
+            color: #6B7280;
+            margin: 0;
+            cursor: pointer;
         }
         
         .forgot-link {
-            color: var(--gold-accent);
+            font-size: 13px;
+            color: #1E2A3A;
             text-decoration: none;
             font-weight: 500;
-            font-size: 0.9rem;
-            transition: all 0.3s;
         }
         
         .forgot-link:hover {
             text-decoration: underline;
-            color: var(--gold-accent);
+        }
+        
+        .btn-signin {
+            width: 100%;
+            padding: 10px 16px;
+            background: #1E2A3A;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 24px;
+        }
+        
+        .btn-signin:hover {
+            background: #2D3A4E;
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .divider-line {
+            flex: 1;
+            height: 1px;
+            background: #E5E7EB;
+        }
+        
+        .divider-text {
+            font-size: 12px;
+            color: #9CA3AF;
+        }
+        
+        .social-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .social-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #4B5563;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        
+        .social-btn:hover {
+            background: #F9FAFB;
+            border-color: #D1D5DB;
+        }
+        
+        .social-btn i {
+            font-size: 16px;
         }
         
         .register-link {
-            color: var(--gold-accent);
-            text-decoration: none;
-            font-weight: 600;
-            font-family: 'Raleway', sans-serif;
+            text-align: center;
+            font-size: 13px;
+            color: #6B7280;
         }
         
-        .register-link:hover {
+        .register-link a {
+            color: #1E2A3A;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .register-link a:hover {
             text-decoration: underline;
         }
         
+        .alert {
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .alert-danger {
+            background: #FEF2F2;
+            color: #DC2626;
+            border-left: 3px solid #DC2626;
+        }
+        
+        .alert-success {
+            background: #ECFDF5;
+            color: #059669;
+            border-left: 3px solid #059669;
+        }
+        
+        .btn-close {
+            margin-left: auto;
+            background: none;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            opacity: 0.5;
+        }
+        
         .back-home {
-            display: inline-block;
-            margin-top: 20px;
-            color: var(--gold-accent);
+            text-align: center;
+            margin-top: 24px;
+        }
+        
+        .back-home a {
+            font-size: 13px;
+            color: #9CA3AF;
             text-decoration: none;
-            font-weight: 600;
-            font-family: 'Raleway', sans-serif;
-            transition: all 0.3s;
         }
         
-        .back-home:hover {
-            transform: translateX(-5px);
-            text-decoration: none;
-            color: var(--gold-accent);
+        .back-home a:hover {
+            color: #6B7280;
         }
         
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-        }
-        
-        @media (max-width: 768px) {
-            .login-header {
-                padding: 30px 20px;
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 32px 24px;
             }
-            .login-header h1 {
-                font-size: 1.8rem;
+            
+            .social-buttons {
+                flex-direction: column;
             }
-            .login-body {
-                padding: 30px 20px;
-            }
-        }
-        
-        /* Custom checkbox styling */
-        .form-check-input:checked {
-            background-color: var(--gold-accent);
-            border-color: var(--gold-accent);
-        }
-        
-        .form-check-input:focus {
-            border-color: var(--gold-accent);
-            box-shadow: 0 0 0 0.2rem rgba(201, 165, 59, 0.25);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-5">
-                <div class="card login-card">
-                    <div class="login-header">
-                        <i class="fas fa-building fa-3x mb-4" style="color: var(--gold-accent); position: relative; z-index: 1;"></i>
-                        <h1>Welcome to <span class="gold-text">Oweru</span></h1>
-                        <p class="mb-0">Login to Real Estate Marketplace</p>
-                    </div>
-                    
-                    <div class="login-body">
-                        @if(session('error'))
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        @endif
-                        
-                        @if(session('status'))
-                            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                <i class="fas fa-check-circle me-2"></i>{{ session('status') }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        @endif
-                        
-                        <form method="POST" action="{{ route('login') }}">
-                            @csrf
-                            
-                            <div class="mb-4">
-                                <label for="email" class="form-label fw-semibold">Email Address</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                    <input type="email" class="form-control @error('email') is-invalid @enderror" 
-                                           id="email" name="email" value="{{ old('email') }}" required autofocus>
-                                </div>
-                                @error('email')
-                                    <span class="text-danger small d-block mt-1">{{ $message }}</span>
-                                @enderror
-                            </div>
-                            
-                            <div class="mb-4">
-                                <label for="password" class="form-label fw-semibold">Password</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                    <input type="password" class="form-control @error('password') is-invalid @enderror" 
-                                           id="password" name="password" required>
-                                    <button type="button" class="btn btn-outline-secondary" id="togglePassword" style="border-radius: 0 15px 15px 0;">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-                                @error('password')
-                                    <span class="text-danger small d-block mt-1">{{ $message }}</span>
-                                @enderror
-                            </div>
-                            
-                            <div class="mb-4 d-flex justify-content-between align-items-center">
-                                <div class="form-check">
-                                    <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                                    <label class="form-check-label" for="remember">
-                                        Remember Me
-                                    </label>
-                                </div>
-                                
-                                <a href="{{ route('password.request') }}" class="forgot-link">
-                                    <i class="fas fa-key me-1"></i>Forgot Password?
-                                </a>
-                            </div>
-                            
-                            <button type="submit" class="btn btn-login mb-4">
-                                <i class="fas fa-sign-in-alt me-2"></i>Login to Oweru
-                            </button>
-                            
-                            <div class="text-center">
-                                <p class="mb-0">Don't have an account? 
-                                    <a href="{{ route('register') }}" class="register-link">Register here</a>
-                                </p>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                
-                <div class="text-center mt-4">
-                    <a href="/" class="back-home">
-                        <i class="fas fa-arrow-left me-2"></i>Back to Oweru Home
-                    </a>
-                </div>
+    <div class="login-card">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-building"></i>
             </div>
+            <h1>oweru<span>build</span></h1>
+            <p>Sign in to your account</p>
+        </div>
+        
+        @if(session('error'))
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i>
+                {{ session('error') }}
+                <button class="btn-close" onclick="this.parentElement.remove()">&times;</button>
+            </div>
+        @endif
+        
+        @if(session('status'))
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                {{ session('status') }}
+                <button class="btn-close" onclick="this.parentElement.remove()">&times;</button>
+            </div>
+        @endif
+        
+        <form method="POST" action="{{ route('login') }}">
+            @csrf
+            
+            <div class="form-group">
+                <label class="form-label">Email address</label>
+                <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" 
+                       value="{{ old('email') }}" placeholder="name@company.com" required autofocus>
+                @error('email')
+                    <small style="color: #DC2626; font-size: 12px; margin-top: 4px; display: block;">{{ $message }}</small>
+                @enderror
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <div class="input-group">
+                    <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" 
+                           placeholder="Enter your password" required>
+                    <button type="button" class="toggle-password" id="togglePassword">
+                        <i class="far fa-eye"></i>
+                    </button>
+                </div>
+                @error('password')
+                    <small style="color: #DC2626; font-size: 12px; margin-top: 4px; display: block;">{{ $message }}</small>
+                @enderror
+            </div>
+            
+            <div class="form-options">
+                <div class="checkbox">
+                    <input type="checkbox" id="remember" name="remember">
+                    <label for="remember">Remember me</label>
+                </div>
+                <a href="{{ route('password.request') }}" class="forgot-link">Forgot password?</a>
+            </div>
+            
+            <button type="submit" class="btn-signin">Sign in</button>
+        </form>
+        
+        <div class="divider">
+            <div class="divider-line"></div>
+            <span class="divider-text">OR</span>
+            <div class="divider-line"></div>
+        </div>
+        
+        <div class="social-buttons">
+            <a href="#" class="social-btn">
+                <i class="fab fa-google"></i> Google
+            </a>
+            <a href="#" class="social-btn">
+                <i class="fab fa-linkedin-in"></i> LinkedIn
+            </a>
+        </div>
+        
+        <div class="register-link">
+            New to Oweru? <a href="{{ route('register') }}">Create an account</a>
+        </div>
+        
+        <div class="back-home">
+            <a href="/"><i class="fas fa-arrow-left"></i> Back to home</a>
         </div>
     </div>
     
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    
     <script>
-        // Toggle password visibility
-        const togglePassword = document.querySelector('#togglePassword');
-        const password = document.querySelector('#password');
+        const togglePassword = document.getElementById('togglePassword');
+        const password = document.getElementById('password');
         
         if (togglePassword && password) {
             togglePassword.addEventListener('click', function() {
@@ -316,6 +410,15 @@
                 this.querySelector('i').classList.toggle('fa-eye-slash');
             });
         }
+        
+        setTimeout(function() {
+            document.querySelectorAll('.alert').forEach(function(alert) {
+                alert.style.opacity = '0';
+                setTimeout(function() {
+                    alert.remove();
+                }, 300);
+            });
+        }, 5000);
     </script>
 </body>
 </html>

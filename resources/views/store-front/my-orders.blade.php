@@ -63,8 +63,13 @@
                                         </form>
                                     @elseif($order->status == 'released')
                                         <a href="{{ route('shop.order-details', $order->id) }}" class="btn btn-outline-success w-100">Order Complete</a>
+                                    @elseif($order->driver && in_array($order->delivery_status, ['in_delivery', 'assigned']))
+                                        <a href="{{ route('shop.order.track', $order) }}" class="btn btn-primary w-100 mb-1">
+                                            <i class="fas fa-map-marker-alt"></i> Track Delivery
+                                        </a>
+                                        <a href="{{ route('shop.order-details', $order->id) }}" class="btn btn-outline-primary w-100">Details</a>
                                     @else
-                                        <div class="text-muted small mt-2">Waiting for seller...</div>
+                                        <a href="{{ route('shop.order-details', $order->id) }}" class="btn btn-outline-primary w-100">View Details</a>
                                     @endif
                                 </div>
                             </div>

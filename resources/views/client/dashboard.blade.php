@@ -1,249 +1,333 @@
 @extends('layouts.app')
 
-@section('title', 'Client Dashboard - BuildConnect')
+@section('title', 'Dashboard - BuildConnect')
 
 @section('content')
-<div class="container py-5">
-    <!-- Welcome Section -->
-    <div class="row mb-5">
-        <div class="col-12">
-            <div class="welcome-card">
-        <div class="welcome-content">
+<div class="dashboard-container">
+    <div class="container">
+        <!-- Welcome Section - American Bold -->
+        <div class="welcome-section">
+            <div class="welcome-text">
+                <h1>Good {{ \Carbon\Carbon::now()->format('A') == 'AM' ? 'morning' : 'afternoon' }}, {{ Auth::user()->first_name ?? Auth::user()->name }}</h1>
+                <p>Here's what's happening with your business today.</p>
+            </div>
+            <div class="welcome-actions">
+                <a href="{{ route('jobs.create') }}" class="btn-primary">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Post a Job
+                </a>
+                <a href="{{ route('messages.index') }}" class="btn-secondary">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    Messages
+                    @if(($unreadCount ?? 0) > 0)
+                        <span class="badge">{{ $unreadCount }}</span>
+                    @endif
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats Cards - American Financial Style -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-content">
+                    <span class="stat-label">Total Jobs</span>
+                    <span class="stat-value">{{ $stats['total_jobs'] }}</span>
+                </div>
+                <div class="stat-icon total">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <rect x="2" y="7" width="20" height="14" rx="2"/>
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-content">
+                    <span class="stat-label">Open Jobs</span>
+                    <span class="stat-value">{{ $stats['open_jobs'] }}</span>
+                </div>
+                <div class="stat-icon open">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-content">
+                    <span class="stat-label">Bids Received</span>
+                    <span class="stat-value">{{ $stats['total_bids_received'] }}</span>
+                    @if(($stats['bid_growth'] ?? 0) != 0)
+                        <span class="stat-trend {{ ($stats['bid_growth'] ?? 0) > 0 ? 'up' : 'down' }}">
+                            {{ ($stats['bid_growth'] ?? 0) > 0 ? '+' : '' }}{{ $stats['bid_growth'] ?? 0 }}%
+                        </span>
+                    @endif
+                </div>
+                <div class="stat-icon bids">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M20 12V8H4v12h12"/>
+                        <path d="M12 2v4"/>
+                        <path d="M8 2v4"/>
+                        <path d="M16 2v4"/>
+                        <path d="M4 12h16"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-content">
+                    <span class="stat-label">Completion Rate</span>
+                    <span class="stat-value">{{ $stats['completion_rate'] ?? 0 }}%</span>
+                </div>
+                <div class="stat-icon completed">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Row -->
+        <div class="quick-actions">
+            <a href="{{ route('client.jobs') }}" class="quick-card">
+                <div class="quick-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <rect x="2" y="7" width="20" height="14" rx="2"/>
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                    </svg>
+                </div>
+                <div>
+                    <h4>Manage Jobs</h4>
+                    <p>{{ $stats['active_jobs'] ?? 0 }} active listings</p>
+                </div>
+                <span class="quick-arrow">→</span>
+            </a>
+            <a href="{{ route('client.bids') }}" class="quick-card">
+                <div class="quick-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M20 12V8H4v12h12"/>
+                        <path d="M12 2v4"/>
+                        <path d="M8 2v4"/>
+                        <path d="M16 2v4"/>
+                        <path d="M4 12h16"/>
+                    </svg>
+                </div>
+                <div>
+                    <h4>Review Bids</h4>
+                    <p>{{ $stats['pending_bids'] ?? 0 }} pending review</p>
+                </div>
+                <span class="quick-arrow">→</span>
+            </a>
+            <a href="{{ route('profile.edit') }}" class="quick-card">
+                <div class="quick-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </div>
+                <div>
+                    <h4>Company Profile</h4>
+                    <p>Update your business info</p>
+                </div>
+                <span class="quick-arrow">→</span>
+            </a>
+            <a href="#" class="quick-card">
+                <div class="quick-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <rect x="2" x2="22" y="6" width="20" height="12" rx="2"/>
+                        <path d="M2 10h20"/>
+                        <path d="M7 15h4"/>
+                    </svg>
+                </div>
+                <div>
+                    <h4>Payments</h4>
+                    <p>${{ number_format($stats['total_spent'] ?? 0) }} spent</p>
+                </div>
+                <span class="quick-arrow">→</span>
+            </a>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="content-grid">
+            <!-- Recent Bids Section -->
+            <div class="card">
+                <div class="card-header">
                     <div>
-                        <h1 class="welcome-title">Welcome back, {{ Auth::user()->name }}!</h1>
-                        <p class="welcome-subtitle">Here's what's happening with your jobs</p>
+                        <h3>Recent Bids</h3>
+                        <p>Latest proposals from professionals</p>
                     </div>
-                    <a href="{{ route('jobs.create') }}" class="btn-post-job">
-                        <i class="fas fa-plus-circle me-2"></i>Post a New Job
-                    </a>
-                    <a href="{{ route('messages.index') }}" class="btn btn-outline-light btn-sm ms-2" title="Messages">
-                        <i class="fas fa-sms me-1"></i>Chats {{ ($unreadCount ?? 0) > 0 ? '(' . $unreadCount . ')' : '' }}
-                    </a>
+                    <a href="{{ route('client.bids') }}" class="card-link">View All →</a>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quick Stats -->
-    <div class="row mb-5">
-        <div class="col-md-3 mb-3">
-            <div class="quick-stat">
-                <div class="stat-icon">
-                    <i class="fas fa-briefcase"></i>
-                </div>
-                <div class="stat-info">
-                    <div class="stat-number">{{ $stats['total_jobs'] }}</div>
-                    <div class="stat-label">Total Jobs</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="quick-stat">
-                <div class="stat-icon">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div class="stat-info">
-                    <div class="stat-number">{{ $stats['open_jobs'] }}</div>
-                    <div class="stat-label">Open Jobs</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="quick-stat">
-                <div class="stat-icon">
-                    <i class="fas fa-gavel"></i>
-                </div>
-                <div class="stat-info">
-                    <div class="stat-number">{{ $stats['total_bids_received'] }}</div>
-                    <div class="stat-label">Bids Received</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="quick-stat">
-                <div class="stat-icon">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="stat-info">
-                    <div class="stat-number">{{ $stats['completed_jobs'] }}</div>
-                    <div class="stat-label">Completed Jobs</div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="row">
-        <!-- Main Content - Recent Bids -->
-        <div class="col-lg-7 mb-4">
-            <div class="section-card">
-                <div class="section-header">
-                    <div>
-                        <h3 class="section-title">Recent Bids</h3>
-                        <p class="section-subtitle">Professionals interested in your jobs</p>
-                    </div>
-                    <a href="{{ route('client.jobs') }}" class="view-all-link">View All Jobs <i class="fas fa-arrow-right ms-1"></i></a>
-                </div>
-                
-                <div class="section-content">
+                <div class="card-body">
                     @if($recentBids->count() > 0)
-                        @foreach($recentBids as $bid)
-                            <div class="bid-item">
-                                <div class="bid-header">
-                                    <div class="professional-avatar">
-                                        <img src="{{ $bid->professional->profile_image_url }}" alt="{{ $bid->professional->name }}">
+                        <div class="bids-list">
+                            @foreach($recentBids as $bid)
+                                <div class="bid-item">
+                                    <div class="bid-avatar">
+                                        <img src="{{ $bid->professional->profile_image_url ?? 'https://ui-avatars.com/api/?background=2563EB&color=fff&name=' . urlencode($bid->professional->name) }}" alt="{{ $bid->professional->name }}">
+                                        @if($bid->professional->is_verified ?? false)
+                                            <span class="verified-badge">
+                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                                    <polyline points="20 6 9 17 4 12"/>
+                                                </svg>
+                                            </span>
+                                        @endif
                                     </div>
-                                    <div class="bid-info">
-                                        <div class="professional-name">{{ $bid->professional->name }}</div>
-                                        <div class="job-name">
-                                            <a href="{{ route('jobs.show', $bid->job) }}">{{ Str::limit($bid->job->title, 50) }}</a>
+                                    <div class="bid-details">
+                                        <div class="bid-row-top">
+                                            <h4>{{ $bid->professional->name }}</h4>
+                                            <span class="bid-amount">${{ number_format($bid->amount) }}</span>
+                                        </div>
+                                        <div class="bid-job">{{ Str::limit($bid->job->title, 60) }}</div>
+                                        <div class="bid-footer">
+                                            <span class="bid-time"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{{ $bid->estimated_days }} days</span>
+                                            <span class="bid-proposal">{{ Str::limit($bid->proposal, 70) }}</span>
                                         </div>
                                     </div>
-                                    <div class="bid-status">
+                                    <div class="bid-actions">
+                                        <span class="status-badge {{ $bid->status }}">
+                                            @if($bid->status == 'pending') Pending
+                                            @elseif($bid->status == 'accepted') Accepted
+                                            @else Declined
+                                            @endif
+                                        </span>
                                         @if($bid->status == 'pending')
-                                            <span class="status-badge status-pending">Pending Review</span>
-                                        @elseif($bid->status == 'accepted')
-                                            <span class="status-badge status-accepted">Accepted ✓</span>
-                                        @else
-                                            <span class="status-badge status-rejected">Rejected ✗</span>
+                                            <div class="action-buttons">
+                                                <button class="accept-btn" onclick="acceptBid({{ $bid->id }})">Accept</button>
+                                                <button class="decline-btn" onclick="declineBid({{ $bid->id }})">Decline</button>
+                                            </div>
                                         @endif
                                     </div>
                                 </div>
-                                
-                                <div class="bid-details">
-                                    <div class="bid-detail">
-                                        <i class="fas fa-dollar-sign"></i>
-                                        <span class="detail-label">Bid Amount:</span>
-                                        <strong class="bid-amount">${{ number_format($bid->amount) }}</strong>
-                                    </div>
-                                    <div class="bid-detail">
-                                        <i class="fas fa-calendar-alt"></i>
-                                        <span class="detail-label">Timeline:</span>
-                                        <span>{{ $bid->estimated_days }} days</span>
-                                    </div>
-                                    <div class="bid-detail">
-                                        <i class="fas fa-file-alt"></i>
-                                        <span class="detail-label">Proposal:</span>
-                                        <span class="proposal-text">{{ Str::limit($bid->proposal, 80) }}</span>
-                                    </div>
-                                </div>
-                                
-                                @if($bid->status == 'pending')
-                                    <div class="bid-actions">
-                                        <a href="{{ route('client.job-bids', $bid->job->id) }}" class="btn-review-bid">
-                                            <i class="fas fa-eye me-2"></i>Review Bid
-                                        </a>
-                                    </div>
-                                @endif
-                            </div>
-                        @endforeach
+                            @endforeach
+                        </div>
+                        <div class="card-footer">
+                            <a href="{{ route('client.bids') }}">View all bids →</a>
+                        </div>
                     @else
-                        <div class="empty-section">
-                            <div class="empty-icon">
-                                <i class="fas fa-inbox"></i>
-                            </div>
+                        <div class="empty-state">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1">
+                                <path d="M20 12V8H4v12h12"/>
+                                <path d="M12 2v4"/>
+                                <path d="M8 2v4"/>
+                                <path d="M16 2v4"/>
+                                <path d="M4 12h16"/>
+                            </svg>
                             <h4>No bids yet</h4>
                             <p>When professionals submit bids, they'll appear here</p>
-                            <a href="{{ route('jobs.create') }}" class="btn-primary">Post a Job to Get Started</a>
+                            <a href="{{ route('jobs.create') }}" class="btn-outline">Post a Job</a>
                         </div>
                     @endif
                 </div>
             </div>
-        </div>
-        
-        <!-- Sidebar - Active Jobs -->
-        <div class="col-lg-5 mb-4">
-            <div class="section-card">
-                <div class="section-header">
+
+            <!-- Active Jobs Section -->
+            <div class="card">
+                <div class="card-header">
                     <div>
-                        <h3 class="section-title">Your Active Jobs</h3>
-                        <p class="section-subtitle">Jobs waiting for your action</p>
+                        <h3>Active Jobs</h3>
+                        <p>Jobs needing your attention</p>
                     </div>
                 </div>
-                
-                <div class="section-content">
+                <div class="card-body">
                     @php
                         $activeJobs = $jobs->whereIn('status', ['open', 'in_progress']);
                     @endphp
                     
                     @if($activeJobs->count() > 0)
-                        @foreach($activeJobs as $job)
-                            <div class="job-item">
-                                <div class="job-header">
-                                    <h4 class="job-title">
-                                        <a href="{{ route('jobs.show', $job) }}">{{ Str::limit($job->title, 45) }}</a>
-                                    </h4>
-                                    <div class="job-status">
+                        <div class="jobs-list">
+                            @foreach($activeJobs->take(5) as $job)
+                                <div class="job-item">
+                                    <div class="job-status-indicator {{ $job->status }}"></div>
+                                    <div class="job-details">
+                                        <div class="job-title">
+                                            <a href="{{ route('jobs.show', $job) }}">{{ Str::limit($job->title, 55) }}</a>
+                                            <span class="job-badge {{ $job->status }}">
+                                                {{ $job->status == 'open' ? 'Open' : 'In Progress' }}
+                                            </span>
+                                        </div>
+                                        <div class="job-meta">
+                                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>{{ $job->created_at->diffForHumans() }}</span>
+                                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 12V8H4v12h12"/><path d="M12 2v4"/></svg>${{ number_format($job->budget_min) }} - ${{ number_format($job->budget_max) }}</span>
+                                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>{{ $job->location ?? 'Remote' }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="job-action">
                                         @if($job->status == 'open')
-                                            <span class="status-badge status-open">Open for Bids</span>
+                                            <a href="{{ route('client.job-bids', $job->id) }}" class="bids-btn">
+                                                View Bids
+                                                @if($job->bids_count > 0)
+                                                    <span class="bid-count">{{ $job->bids_count }}</span>
+                                                @endif
+                                            </a>
                                         @else
-                                            <span class="status-badge status-progress">In Progress</span>
+                                            <form action="{{ route('client.complete-job', $job->id) }}" method="POST" class="complete-form">
+                                                @csrf
+                                                <button type="submit" class="complete-btn" onclick="return confirm('Mark this job as completed?')">
+                                                    Mark Complete
+                                                </button>
+                                            </form>
                                         @endif
                                     </div>
                                 </div>
-                                
-                                <div class="job-meta">
-                                    <div class="meta-item">
-                                        <i class="fas fa-dollar-sign"></i>
-                                        <span>${{ number_format($job->budget_min) }} - ${{ number_format($job->budget_max) }}</span>
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-map-marker-alt"></i>
-                                        <span>{{ $job->location ?? 'Remote' }}</span>
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-calendar"></i>
-                                        <span>Posted {{ $job->created_at->diffForHumans() }}</span>
-                                    </div>
-                                </div>
-                                
-                                @if($job->status == 'open')
-                                    <div class="job-actions">
-                                        <a href="{{ route('client.job-bids', $job->id) }}" class="btn-view-bids">
-                                            <i class="fas fa-gavel me-2"></i>View Bids 
-                                            @if($job->bids_count > 0)
-                                                <span class="bid-badge">{{ $job->bids_count }}</span>
-                                            @endif
-                                        </a>
-                                    </div>
-                                @elseif($job->status == 'in_progress')
-                                    <div class="job-actions">
-                                        <form action="{{ route('client.complete-job', $job->id) }}" method="POST">
-                                            @csrf
-                                            <button type="submit" class="btn-complete-job" onclick="return confirm('Mark this job as completed?')">
-                                                <i class="fas fa-check-circle me-2"></i>Mark as Completed
-                                            </button>
-                                        </form>
-                                    </div>
-                                @endif
-                            </div>
-                        @endforeach
-                        
-                        @if($activeJobs->count() > 3)
-                            <div class="view-all-footer">
-                                <a href="{{ route('client.jobs') }}" class="view-all-jobs">View All {{ $activeJobs->count() }} Jobs →</a>
+                            @endforeach
+                        </div>
+                        @if($activeJobs->count() > 5)
+                            <div class="card-footer">
+                                <a href="{{ route('client.jobs') }}">View all {{ $activeJobs->count() }} active jobs →</a>
                             </div>
                         @endif
                     @else
-                        <div class="empty-section-small">
-                            <i class="fas fa-briefcase"></i>
-                            <p>No active jobs</p>
-                            <a href="{{ route('jobs.create') }}" class="btn-primary-small">Post Your First Job</a>
+                        <div class="empty-state">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1">
+                                <rect x="2" y="7" width="20" height="14" rx="2"/>
+                                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                            </svg>
+                            <h4>No active jobs</h4>
+                            <p>Post your first job to start receiving bids</p>
+                            <a href="{{ route('jobs.create') }}" class="btn-outline">Post a Job</a>
                         </div>
                     @endif
                 </div>
             </div>
-            
-            <!-- Quick Tip Card -->
-            <div class="tip-card mt-4">
-                <div class="tip-icon">
-                    <i class="fas fa-lightbulb"></i>
-                </div>
-                <div class="tip-content">
-                    <h5>Need Help?</h5>
-                    <p>Post a detailed job description to attract the best professionals. Include budget, timeline, and specific requirements.</p>
-                    <a href="{{ route('jobs.create') }}" class="tip-link">Post a Job →</a>
-                </div>
+        </div>
+
+        <!-- Recent Activity Section -->
+        <div class="activity-card">
+            <div class="activity-header">
+                <h3>Recent Activity</h3>
+                <a href="#" class="card-link">View History →</a>
+            </div>
+            <div class="activity-timeline">
+                @php
+                    $activities = $recentActivities ?? collect();
+                @endphp
+                @forelse($activities->take(5) as $activity)
+                    <div class="activity-item">
+                        <div class="activity-icon {{ $activity->type }}">
+                            @if($activity->type == 'bid')
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 12V8H4v12h12"/><path d="M12 2v4"/></svg>
+                            @elseif($activity->type == 'job')
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="7" width="20" height="14" rx="2"/></svg>
+                            @elseif($activity->type == 'message')
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            @else
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                            @endif
+                        </div>
+                        <div class="activity-content">
+                            <p>{{ $activity->description }}</p>
+                            <span class="activity-time">{{ $activity->created_at->diffForHumans() }}</span>
+                        </div>
+                    </div>
+                @empty
+                    <div class="activity-empty">
+                        <p>No recent activity to show</p>
+                    </div>
+                @endforelse
             </div>
         </div>
     </div>
@@ -251,616 +335,901 @@
 
 @push('styles')
 <style>
-    .quick-stat-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 1rem;
-        background: var(--white);
-        border-radius: 16px;
-        border: 1px solid var(--gray-200);
-        color: var(--gray-700);
-        text-decoration: none;
-        font-weight: 500;
-        transition: all 0.2s;
-        font-size: 0.9rem;
-    }
-    .quick-stat-link:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px -6px rgba(0,0,0,0.08);
-        border-color: var(--brand-gold);
-        color: var(--brand-gold);
-    }
-    .quick-stat-link i {
-        font-size: 1.5rem;
-        color: var(--brand-gold);
+/* ═══════════════════════════════════════════
+   AMERICAN STYLE DASHBOARD
+   Clean | Bold | Data-Driven | Functional
+═══════════════════════════════════════════ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.dashboard-container {
+    background: #F1F5F9;
+    min-height: calc(100vh - 64px);
+    padding: 32px 0;
+}
+
+.container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* ═══════════════════════════════════════════
+   TYPOGRAPHY
+═══════════════════════════════════════════ */
+h1, h2, h3, h4 {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+/* ═══════════════════════════════════════════
+   WELCOME SECTION
+═══════════════════════════════════════════ */
+.welcome-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.welcome-text h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 0 0 4px 0;
+}
+
+.welcome-text p {
+    font-size: 15px;
+    color: #475569;
+    margin: 0;
+}
+
+.welcome-actions {
+    display: flex;
+    gap: 12px;
+}
+
+/* Buttons - Clean American Style */
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #2563EB;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    background: #1D4ED8;
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: white;
+    color: #1E293B;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    background: #F8FAFC;
+    border-color: #CBD5E1;
+}
+
+.btn-secondary .badge {
+    background: #EF4444;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 4px;
+}
+
+.btn-outline {
+    display: inline-block;
+    padding: 10px 20px;
+    background: transparent;
+    color: #2563EB;
+    border: 1px solid #2563EB;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn-outline:hover {
+    background: #2563EB;
+    color: white;
+}
+
+/* ═══════════════════════════════════════════
+   STATS CARDS
+═══════════════════════════════════════════ */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #E2E8F0;
+    transition: all 0.2s;
+}
+
+.stat-card:hover {
+    border-color: #CBD5E1;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.stat-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #0F172A;
+    line-height: 1;
+}
+
+.stat-trend {
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.stat-trend.up {
+    color: #10B981;
+}
+
+.stat-trend.down {
+    color: #EF4444;
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stat-icon.total {
+    background: #EFF6FF;
+}
+.stat-icon.total svg { stroke: #2563EB; }
+
+.stat-icon.open {
+    background: #FEF3C7;
+}
+.stat-icon.open svg { stroke: #D97706; }
+
+.stat-icon.bids {
+    background: #ECFDF5;
+}
+.stat-icon.bids svg { stroke: #10B981; }
+
+.stat-icon.completed {
+    background: #F3E8FF;
+}
+.stat-icon.completed svg { stroke: #8B5CF6; }
+
+/* ═══════════════════════════════════════════
+   QUICK ACTIONS
+═══════════════════════════════════════════ */
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.quick-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    text-decoration: none;
+    border: 1px solid #E2E8F0;
+    transition: all 0.2s;
+}
+
+.quick-card:hover {
+    border-color: #2563EB;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+.quick-icon {
+    width: 44px;
+    height: 44px;
+    background: #F8FAFC;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quick-icon svg {
+    stroke: #2563EB;
+}
+
+.quick-card h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0F172A;
+    margin: 0 0 4px 0;
+}
+
+.quick-card p {
+    font-size: 12px;
+    color: #64748B;
+    margin: 0;
+}
+
+.quick-arrow {
+    margin-left: auto;
+    color: #94A3B8;
+    font-size: 18px;
+    transition: transform 0.2s;
+}
+
+.quick-card:hover .quick-arrow {
+    transform: translateX(4px);
+    color: #2563EB;
+}
+
+/* ═══════════════════════════════════════════
+   CONTENT GRID
+═══════════════════════════════════════════ */
+.content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+/* ═══════════════════════════════════════════
+   CARDS
+═══════════════════════════════════════════ */
+.card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #F1F5F9;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.card-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #0F172A;
+    margin: 0 0 4px 0;
+}
+
+.card-header p {
+    font-size: 13px;
+    color: #64748B;
+    margin: 0;
+}
+
+.card-link {
+    font-size: 13px;
+    font-weight: 500;
+    color: #2563EB;
+    text-decoration: none;
+}
+
+.card-link:hover {
+    color: #1D4ED8;
+}
+
+.card-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #F1F5F9;
+    text-align: center;
+}
+
+.card-footer a {
+    font-size: 13px;
+    font-weight: 500;
+    color: #2563EB;
+    text-decoration: none;
+}
+
+/* ═══════════════════════════════════════════
+   BIDS LIST
+═══════════════════════════════════════════ */
+.bids-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.bid-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 24px;
+    border-bottom: 1px solid #F1F5F9;
+    transition: background 0.2s;
+}
+
+.bid-item:hover {
+    background: #F8FAFC;
+}
+
+.bid-avatar {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.bid-avatar img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.verified-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 18px;
+    height: 18px;
+    background: #2563EB;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+}
+
+.verified-badge svg {
+    stroke: white;
+}
+
+.bid-details {
+    flex: 1;
+}
+
+.bid-row-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.bid-row-top h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0F172A;
+    margin: 0;
+}
+
+.bid-amount {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0F172A;
+}
+
+.bid-job {
+    font-size: 13px;
+    color: #64748B;
+    margin-bottom: 8px;
+}
+
+.bid-footer {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.bid-time {
+    font-size: 12px;
+    color: #94A3B8;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.bid-proposal {
+    font-size: 12px;
+    color: #475569;
+}
+
+.bid-actions {
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.status-badge.pending {
+    background: #FEF3C7;
+    color: #D97706;
+}
+
+.status-badge.accepted {
+    background: #ECFDF5;
+    color: #059669;
+}
+
+.status-badge.declined {
+    background: #FEF2F2;
+    color: #DC2626;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.accept-btn, .decline-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.accept-btn {
+    background: #10B981;
+    color: white;
+}
+
+.accept-btn:hover {
+    background: #059669;
+}
+
+.decline-btn {
+    background: #F1F5F9;
+    color: #64748B;
+}
+
+.decline-btn:hover {
+    background: #E2E8F0;
+    color: #DC2626;
+}
+
+/* ═══════════════════════════════════════════
+   JOBS LIST
+═══════════════════════════════════════════ */
+.jobs-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.job-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 24px;
+    border-bottom: 1px solid #F1F5F9;
+    transition: background 0.2s;
+}
+
+.job-item:hover {
+    background: #F8FAFC;
+}
+
+.job-status-indicator {
+    width: 3px;
+    height: 40px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.job-status-indicator.open {
+    background: #F59E0B;
+}
+
+.job-status-indicator.in_progress {
+    background: #3B82F6;
+}
+
+.job-details {
+    flex: 1;
+}
+
+.job-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.job-title a {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0F172A;
+    text-decoration: none;
+}
+
+.job-title a:hover {
+    color: #2563EB;
+}
+
+.job-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.job-badge.open {
+    background: #FEF3C7;
+    color: #D97706;
+}
+
+.job-badge.in_progress {
+    background: #EFF6FF;
+    color: #2563EB;
+}
+
+.job-meta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.job-meta span {
+    font-size: 12px;
+    color: #64748B;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.job-action {
+    flex-shrink: 0;
+}
+
+.bids-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #1E293B;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.bids-btn:hover {
+    background: #F8FAFC;
+    border-color: #2563EB;
+}
+
+.bid-count {
+    background: #2563EB;
+    color: white;
+    padding: 2px 7px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.complete-btn {
+    padding: 8px 16px;
+    background: #10B981;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.complete-btn:hover {
+    background: #059669;
+}
+
+.complete-form {
+    margin: 0;
+}
+
+/* ═══════════════════════════════════════════
+   EMPTY STATE
+═══════════════════════════════════════════ */
+.empty-state {
+    text-align: center;
+    padding: 48px 24px;
+}
+
+.empty-state svg {
+    margin-bottom: 16px;
+}
+
+.empty-state h4 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1E293B;
+    margin: 0 0 8px 0;
+}
+
+.empty-state p {
+    font-size: 13px;
+    color: #64748B;
+    margin-bottom: 20px;
+}
+
+/* ═══════════════════════════════════════════
+   ACTIVITY CARD
+═══════════════════════════════════════════ */
+.activity-card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+    overflow: hidden;
+}
+
+.activity-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #F1F5F9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.activity-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #0F172A;
+    margin: 0;
+}
+
+.activity-timeline {
+    padding: 8px 0;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 24px;
+    border-bottom: 1px solid #F1F5F9;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.activity-icon.bid {
+    background: #ECFDF5;
+}
+.activity-icon.bid svg { stroke: #10B981; }
+
+.activity-icon.job {
+    background: #EFF6FF;
+}
+.activity-icon.job svg { stroke: #2563EB; }
+
+.activity-icon.message {
+    background: #FEF3C7;
+}
+.activity-icon.message svg { stroke: #D97706; }
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-content p {
+    font-size: 14px;
+    color: #1E293B;
+    margin: 0 0 4px 0;
+}
+
+.activity-time {
+    font-size: 12px;
+    color: #94A3B8;
+}
+
+.activity-empty {
+    padding: 40px 24px;
+    text-align: center;
+    color: #94A3B8;
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+@media (max-width: 1024px) {
+    .stats-row {
+        grid-template-columns: repeat(2, 1fr);
     }
     
-    /* Welcome Card */
-    .welcome-card {
-        background: linear-gradient(135deg, var(--brand-dark) 0%, #1e293b 100%);
-        border-radius: 24px;
-        padding: 2rem;
-        color: black;
+    .quick-actions {
+        grid-template-columns: repeat(2, 1fr);
     }
     
-    .welcome-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
+    .content-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 24px 0;
     }
     
-    .welcome-title {
-        font-size: 1.8rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        color: black;
+    .container {
+        padding: 0 16px;
     }
     
-    .welcome-subtitle {
-        color: rgba(10, 1, 1, 0.8);
-        margin-bottom: 0;
+    .welcome-section {
+        flex-direction: column;
+        text-align: center;
     }
     
-    .btn-post-job {
-        display: inline-flex;
-        align-items: center;
-        padding: 12px 28px;
-        background: var(--brand-gold);
-        color: var(--brand-dark);
-        border-radius: 12px;
-        font-weight: 600;
-        text-decoration: none;
-        transition: all 0.2s;
-    }
-    
-    .btn-post-job:hover {
-        background: var(--brand-gold-dark);
-        transform: translateY(-2px);
-        color: var(--brand-dark);
-    }
-    
-    /* Quick Stats */
-    .quick-stat {
-        background: var(--white);
-        border-radius: 16px;
-        padding: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        border: 1px solid var(--gray-200);
-        transition: all 0.2s;
-    }
-    
-    .quick-stat:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px -6px rgba(0,0,0,0.08);
-        border-color: var(--brand-gold);
-    }
-    
-    .stat-icon {
-        width: 48px;
-        height: 48px;
-        background: rgba(201, 165, 59, 0.1);
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
+    .welcome-actions {
+        width: 100%;
         justify-content: center;
     }
     
-    .stat-icon i {
-        font-size: 1.5rem;
-        color: var(--brand-gold);
+    .stats-row {
+        grid-template-columns: 1fr;
     }
     
-    .stat-info {
-        flex: 1;
+    .quick-actions {
+        grid-template-columns: 1fr;
     }
     
-    .stat-number {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: var(--brand-dark);
-        line-height: 1.2;
-    }
-    
-    .stat-label {
-        font-size: 0.8rem;
-        color: var(--gray-500);
-    }
-    
-    /* Section Cards */
-    .section-card {
-        background: var(--white);
-        border-radius: 20px;
-        border: 1px solid var(--gray-200);
-        overflow: hidden;
-        height: 100%;
-    }
-    
-    .section-header {
-        padding: 1.25rem 1.5rem;
-        border-bottom: 1px solid var(--gray-200);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-    
-    .section-title {
-        font-size: 1.2rem;
-        font-weight: 700;
-        color: var(--brand-dark);
-        margin-bottom: 0.25rem;
-    }
-    
-    .section-subtitle {
-        font-size: 0.8rem;
-        color: var(--gray-500);
-        margin-bottom: 0;
-    }
-    
-    .view-all-link {
-        color: var(--brand-gold);
-        text-decoration: none;
-        font-size: 0.85rem;
-        font-weight: 500;
-        transition: all 0.2s;
-    }
-    
-    .view-all-link:hover {
-        color: var(--brand-gold-dark);
-        transform: translateX(3px);
-    }
-    
-    .section-content {
-        padding: 0;
-    }
-    
-    /* Bid Items */
-    .bid-item {
-        padding: 1.25rem 1.5rem;
-        border-bottom: 1px solid var(--gray-200);
-        transition: background 0.2s;
-    }
-    
-    .bid-item:hover {
-        background: var(--gray-50);
-    }
-    
-    .bid-header {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        margin-bottom: 1rem;
-        flex-wrap: wrap;
-    }
-    
-    .professional-avatar {
-        width: 48px;
-        height: 48px;
-        flex-shrink: 0;
-    }
-    
-    .professional-avatar img {
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid var(--brand-gold);
-    }
-    
-    .bid-info {
-        flex: 1;
-    }
-    
-    .professional-name {
-        font-weight: 600;
-        color: var(--brand-dark);
-        margin-bottom: 0.25rem;
-    }
-    
-    .job-name a {
-        font-size: 0.85rem;
-        color: var(--gray-600);
-        text-decoration: none;
-    }
-    
-    .job-name a:hover {
-        color: var(--brand-gold);
-    }
-    
-    .bid-status {
-        flex-shrink: 0;
-    }
-    
-    .bid-details {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1.5rem;
-        margin-bottom: 1rem;
-        padding: 0.75rem;
-        background: var(--gray-50);
-        border-radius: 12px;
-    }
-    
-    .bid-detail {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.85rem;
-    }
-    
-    .bid-detail i {
-        color: var(--brand-gold);
-        width: 16px;
-    }
-    
-    .detail-label {
-        color: var(--gray-600);
-    }
-    
-    .bid-amount {
-        color: var(--brand-gold);
-        font-size: 1rem;
-    }
-    
-    .proposal-text {
-        color: var(--gray-600);
+    .bid-item, .job-item {
+        flex-direction: column;
+        align-items: flex-start;
     }
     
     .bid-actions {
-        margin-top: 0.75rem;
+        text-align: left;
+        width: 100%;
     }
     
-    .btn-review-bid {
-        display: inline-flex;
-        align-items: center;
-        padding: 8px 20px;
-        background: transparent;
-        border: 1px solid var(--brand-gold);
-        color: var(--brand-gold);
-        border-radius: 10px;
-        font-size: 0.85rem;
-        font-weight: 500;
-        text-decoration: none;
-        transition: all 0.2s;
+    .action-buttons {
+        width: 100%;
     }
     
-    .btn-review-bid:hover {
-        background: var(--brand-gold);
-        color: var(--brand-dark);
+    .accept-btn, .decline-btn {
+        flex: 1;
+    }
+}
+
+@media (max-width: 480px) {
+    .welcome-actions {
+        flex-direction: column;
     }
     
-    /* Job Items */
-    .job-item {
-        padding: 1.25rem 1.5rem;
-        border-bottom: 1px solid var(--gray-200);
-    }
-    
-    .job-item:last-child {
-        border-bottom: none;
-    }
-    
-    .job-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 1rem;
-        margin-bottom: 0.75rem;
-        flex-wrap: wrap;
-    }
-    
-    .job-title {
-        font-size: 1rem;
-        font-weight: 600;
-        margin-bottom: 0;
-    }
-    
-    .job-title a {
-        color: var(--brand-dark);
-        text-decoration: none;
-    }
-    
-    .job-title a:hover {
-        color: var(--brand-gold);
+    .btn-primary, .btn-secondary {
+        justify-content: center;
+        width: 100%;
     }
     
     .job-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        margin-bottom: 1rem;
+        gap: 12px;
     }
-    
-    .meta-item {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.8rem;
-        color: var(--gray-600);
-    }
-    
-    .meta-item i {
-        color: var(--brand-gold);
-        width: 14px;
-    }
-    
-    .job-actions {
-        margin-top: 0.75rem;
-    }
-    
-    .btn-view-bids {
-        display: inline-flex;
-        align-items: center;
-        padding: 8px 16px;
-        background: transparent;
-        border: 1px solid var(--brand-gold);
-        color: var(--brand-gold);
-        border-radius: 10px;
-        font-size: 0.85rem;
-        font-weight: 500;
-        text-decoration: none;
-        transition: all 0.2s;
-    }
-    
-    .btn-view-bids:hover {
-        background: var(--brand-gold);
-        color: var(--brand-dark);
-    }
-    
-    .bid-badge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 20px;
-        height: 20px;
-        padding: 0 6px;
-        background: var(--brand-gold);
-        color: var(--brand-dark);
-        border-radius: 20px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        margin-left: 6px;
-    }
-    
-    .btn-complete-job {
-        display: inline-flex;
-        align-items: center;
-        padding: 8px 16px;
-        background: var(--success);
-        border: none;
-        color: white;
-        border-radius: 10px;
-        font-size: 0.85rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    
-    .btn-complete-job:hover {
-        background: #047857;
-        transform: translateY(-1px);
-    }
-    
-    .view-all-footer {
-        padding: 1rem 1.5rem;
-        text-align: center;
-        border-top: 1px solid var(--gray-200);
-    }
-    
-    .view-all-jobs {
-        color: var(--brand-gold);
-        text-decoration: none;
-        font-size: 0.85rem;
-        font-weight: 500;
-    }
-    
-    .view-all-jobs:hover {
-        color: var(--brand-gold-dark);
-    }
-    
-    /* Status Badges */
-    .status-badge {
-        display: inline-block;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        font-weight: 500;
-    }
-    
-    .status-pending {
-        background: #FFFBEB;
-        color: #D97706;
-    }
-    
-    .status-accepted {
-        background: #ECFDF5;
-        color: #059669;
-    }
-    
-    .status-rejected {
-        background: #FEF2F2;
-        color: #DC2626;
-    }
-    
-    .status-open {
-        background: rgba(201, 165, 59, 0.1);
-        color: var(--brand-gold);
-    }
-    
-    .status-progress {
-        background: #EFF6FF;
-        color: #2563EB;
-    }
-    
-    /* Empty States */
-    .empty-section {
-        text-align: center;
-        padding: 3rem 2rem;
-    }
-    
-    .empty-icon {
-        width: 80px;
-        height: 80px;
-        background: rgba(201, 165, 59, 0.1);
-        border-radius: 50%;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 1.5rem;
-    }
-    
-    .empty-icon i {
-        font-size: 2.5rem;
-        color: var(--brand-gold);
-    }
-    
-    .empty-section h4 {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: var(--brand-dark);
-        margin-bottom: 0.5rem;
-    }
-    
-    .empty-section p {
-        color: var(--gray-500);
-        margin-bottom: 1.5rem;
-    }
-    
-    .btn-primary {
-        display: inline-flex;
-        align-items: center;
-        padding: 10px 24px;
-        background: var(--brand-gold);
-        color: var(--brand-dark);
-        border-radius: 10px;
-        text-decoration: none;
-        font-weight: 500;
-        transition: all 0.2s;
-    }
-    
-    .btn-primary:hover {
-        background: var(--brand-gold-dark);
-        transform: translateY(-2px);
-    }
-    
-    .empty-section-small {
-        text-align: center;
-        padding: 2rem;
-    }
-    
-    .empty-section-small i {
-        font-size: 2.5rem;
-        color: var(--gray-400);
-        margin-bottom: 1rem;
-    }
-    
-    .empty-section-small p {
-        font-size: 0.9rem;
-        color: var(--gray-500);
-        margin-bottom: 1rem;
-    }
-    
-    .btn-primary-small {
-        display: inline-block;
-        padding: 6px 16px;
-        background: var(--brand-gold);
-        color: var(--brand-dark);
-        border-radius: 8px;
-        text-decoration: none;
-        font-size: 0.8rem;
-        font-weight: 500;
-        transition: all 0.2s;
-    }
-    
-    .btn-primary-small:hover {
-        background: var(--brand-gold-dark);
-    }
-    
-    /* Tip Card */
-    .tip-card {
-        background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
-        border-radius: 16px;
-        padding: 1.25rem;
-        display: flex;
-        gap: 1rem;
-        align-items: flex-start;
-    }
-    
-    .tip-icon {
-        width: 40px;
-        height: 40px;
-        background: rgba(0,0,0,0.1);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-    
-    .tip-icon i {
-        font-size: 1.2rem;
-        color: var(--brand-dark);
-    }
-    
-    .tip-content {
-        flex: 1;
-    }
-    
-    .tip-content h5 {
-        font-size: 0.9rem;
-        font-weight: 700;
-        color: var(--brand-dark);
-        margin-bottom: 0.25rem;
-    }
-    
-    .tip-content p {
-        font-size: 0.8rem;
-        color: var(--brand-dark);
-        opacity: 0.8;
-        margin-bottom: 0.5rem;
-    }
-    
-    .tip-link {
-        font-size: 0.8rem;
-        color: var(--brand-dark);
-        font-weight: 600;
-        text-decoration: none;
-    }
-    
-    .tip-link:hover {
-        text-decoration: underline;
-    }
-    
-    /* Responsive */
-    @media (max-width: 768px) {
-        .welcome-content {
-            flex-direction: column;
-            text-align: center;
-        }
-        
-        .welcome-title {
-            font-size: 1.5rem;
-        }
-        
-        .bid-header {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        
-        .bid-details {
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-        
-        .job-header {
-            flex-direction: column;
-        }
-    }
+}
 </style>
+@endpush
+
+@push('scripts')
+<script>
+// Helper functions for bid actions
+function acceptBid(bidId) {
+    if (confirm('Accept this bid?')) {
+        fetch(`/client/bids/${bidId}/accept`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json'
+            }
+        }).then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  location.reload();
+              }
+          });
+    }
+}
+
+function declineBid(bidId) {
+    if (confirm('Decline this bid?')) {
+        fetch(`/client/bids/${bidId}/decline`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json'
+            }
+        }).then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  location.reload();
+              }
+          });
+    }
+}
+</script>
 @endpush
 @endsection

@@ -39,6 +39,7 @@ $unreadCount = \App\Models\Message::whereHas('conversation', function($query) {
                 $p->where('user_id', Auth::id());
             });
         })->where('is_read', false)
+->where('user_id', '!=', Auth::id())
           ->count();
         
         // Recommended jobs

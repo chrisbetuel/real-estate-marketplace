@@ -23,6 +23,8 @@ use App\Http\Controllers\ProfessionalDashboardController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\StoreDashboardController;
 use App\Http\Controllers\StoreFrontController;
+use App\Http\Controllers\DriverController;
+use App\Http\Controllers\PosController;
 
 use App\Http\Controllers\ServiceEcosystemController;
 
@@ -100,11 +102,43 @@ Route::prefix('shop')->name('shop.')->group(function () {
         // My orders
         Route::get('/my-orders', [StoreFrontController::class, 'myOrders'])->name('my-orders');
         Route::get('/order/{order}', [StoreFrontController::class, 'orderDetails'])->name('order-details');
+        Route::get('/order/{order}/track', [StoreFrontController::class, 'trackOrder'])->name('order.track');
         Route::post('/orders/{order}/confirm', [StoreFrontController::class, 'confirmReceipt'])->name('orders.confirm-receipt');
     });
 });
 
 Route::resource('properties', PropertyController::class);
+
+/*
+|--------------------------------------------------------------------------
+| POS Routes (Independent — any authenticated user)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('pos')->name('pos.')->middleware('auth')->group(function () {
+    Route::get('/single-shop', [PosController::class, 'singleShop'])->name('single-shop');
+    Route::get('/multi-shop', [PosController::class, 'multiShop'])->name('multi-shop');
+    Route::get('/sale', [PosController::class, 'sale'])->name('sale');
+    Route::post('/quick-add-product', [PosController::class, 'quickAddProduct'])->name('quick-add-product');
+    Route::post('/checkout', [PosController::class, 'checkout'])->name('checkout');
+    Route::get('/receipt/{sale}', [PosController::class, 'receipt'])->name('receipt');
+    Route::get('/daily-report', [PosController::class, 'dailyReport'])->name('daily-report');
+    Route::get('/history', [PosController::class, 'history'])->name('history');
+
+    // Multi-Shop Routes
+    Route::get('/shops', [PosController::class, 'shops'])->name('shops');
+    Route::get('/shops/create', [PosController::class, 'createShop'])->name('shops.create');
+    Route::post('/shops', [PosController::class, 'storeShop'])->name('shops.store');
+    Route::get('/shops/{shop}', [PosController::class, 'shopDashboard'])->name('shops.dashboard');
+    Route::get('/shops/{shop}/sale', [PosController::class, 'shopSale'])->name('shops.sale');
+    Route::post('/shops/{shop}/checkout', [PosController::class, 'shopCheckout'])->name('shops.checkout');
+    Route::get('/shops/{shop}/reports', [PosController::class, 'shopReports'])->name('shops.reports');
+    Route::get('/shops/{shop}/staff', [PosController::class, 'shopStaff'])->name('shops.staff');
+    Route::post('/shops/{shop}/staff', [PosController::class, 'storeStaff'])->name('shops.staff.store');
+    Route::delete('/shops/{shop}/staff/{user}', [PosController::class, 'removeStaff'])->name('shops.staff.remove');
+    Route::post('/shops/{shop}/quick-add-product', [PosController::class, 'quickAddProductToShop'])->name('shops.quick-add-product');
+    Route::get('/transfers', [PosController::class, 'transferStock'])->name('transfers');
+    Route::post('/transfers', [PosController::class, 'storeTransfer'])->name('transfers.store');
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -127,10 +161,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
         $user = auth()->user();
 
-        return match ($user->user_type) {
-            'professional' => redirect()->route('professional.dashboard'),
-            'store_owner' => redirect()->route('store-owner.dashboard'),
-            'admin' => redirect()->route('admin.dashboard'),
+        return match (true) {
+            $user->user_type === 'store_owner' || $user->store => redirect()->route('store-owner.dashboard'),
+            $user->isProfessional() => redirect()->route('professional.dashboard'),
+            $user->user_type === 'admin' => redirect()->route('admin.dashboard'),
             default => redirect()->route('client.dashboard'),
         };
     })->name('dashboard');
@@ -146,6 +180,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [ClientDashboardController::class, 'index'])->name('dashboard');
         Route::get('/jobs', [ClientDashboardController::class, 'jobs'])->name('jobs');
         Route::get('/jobs/{job}/bids', [ClientDashboardController::class, 'jobBids'])->name('job-bids');
+        Route::get('/bids', [ClientDashboardController::class, 'bids'])->name('bids');
         Route::post('/bids/{bid}/accept', [ClientDashboardController::class, 'acceptBid'])->name('accept-bid');
         Route::post('/bids/{bid}/reject', [ClientDashboardController::class, 'rejectBid'])->name('reject-bid');
         Route::post('/jobs/{job}/complete', [ClientDashboardController::class, 'completeJob'])->name('complete-job');
@@ -164,8 +199,9 @@ Route::middleware('auth')->group(function () {
     });
 
     // 🔹 Store Owner Dashboard
-    Route::middleware(['auth', 'store_owner'])->prefix('store-owner')->name('store-owner.')->group(function () {
+Route::middleware(['auth', 'store_owner'])->prefix('store-owner')->name('store-owner.')->group(function () {
         Route::get('/dashboard', [StoreDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/orders', [StoreDashboardController::class, 'myOrders'])->name('orders');
         Route::get('/profile', [StoreDashboardController::class, 'editProfile'])->name('profile.edit');
         Route::post('/profile', [StoreDashboardController::class, 'updateProfile'])->name('profile.update');
         
@@ -176,6 +212,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/products/{id}/edit', [StoreDashboardController::class, 'editProduct'])->name('products.edit');
         Route::put('/products/{id}', [StoreDashboardController::class, 'updateProduct'])->name('products.update');
         Route::delete('/products/{id}', [StoreDashboardController::class, 'deleteProduct'])->name('products.delete');
+        
+        // Driver Management
+        Route::get('/drivers', [DriverController::class, 'index'])->name('drivers');
+        Route::get('/drivers/create', [DriverController::class, 'create'])->name('drivers.create');
+        Route::post('/drivers', [DriverController::class, 'store'])->name('drivers.store');
+        Route::patch('/drivers/{driver}/toggle', [DriverController::class, 'toggleAvailability'])->name('drivers.toggle');
+        Route::post('/drivers/nearby', [DriverController::class, 'nearby'])->name('drivers.nearby');
     });
 
     // 🔹 Admin

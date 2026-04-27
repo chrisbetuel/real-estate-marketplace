@@ -105,8 +105,17 @@ class ServiceEcosystem
     {
         $allProfessions = [];
         foreach (self::getStages() as $stage) {
-            $allProfessions = array_merge($allProfessions, $stage['professions']);
+            if (isset($stage['professions'])) {
+                $allProfessions = array_merge($allProfessions, $stage['professions']);
+            }
+            if (isset($stage['substages'])) {
+                foreach ($stage['substages'] as $substage) {
+                    if (isset($substage['professions'])) {
+                        $allProfessions = array_merge($allProfessions, $substage['professions']);
+                    }
+                }
+            }
         }
-        return $allProfessions;
+        return array_unique($allProfessions);
     }
 }

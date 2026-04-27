@@ -96,6 +96,9 @@
                             <a href="{{ route('store-owner.orders') }}" class="btn" style="background: var(--success); color: white;">
                                 <i class="fas fa-box me-2"></i>My Orders
                             </a>
+                            <a href="{{ route('store-owner.drivers') }}" class="btn" style="background: var(--primary); color: blue;">
+                                <i class="fas fa-truck me-2"></i>Delivery Drivers
+                            </a>
                         </div>
                 </div>
                 
@@ -117,8 +120,8 @@
                                         <tr>
                                             <td class="product-info">
                                                 <div class="product-image">
-                                                    @php
-                                                        $images = json_decode($product->images, true);
+@php
+                                                        $images = is_string($product->images) ? json_decode($product->images, true) : ($product->images ?? []);
                                                     @endphp
                                                     @if($images && count($images) > 0)
                                                         <img src="{{ asset('storage/' . $images[0]) }}" alt="{{ $product->name }}">

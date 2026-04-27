@@ -44,12 +44,13 @@ class SearchController extends Controller
             ->where('user_type', 'professional');
 
         if ($request->filled('keyword') || $request->filled('search')) {
-            $searchTerm = $request->filled('keyword') ? $request->keyword : $request->search;
+            $searchTerm = trim(($request->filled('keyword') ? $request->keyword : $request->search));
             $query->where(function($q) use ($searchTerm) {
                 $q->where('name', 'like', '%' . $searchTerm . '%')
                   ->orWhere('email', 'like', '%' . $searchTerm . '%')
                   ->orWhereHas('professionalProfile', function($q2) use ($searchTerm) {
-                      $q2->where('profession', 'like', '%' . $searchTerm . '%');
+                      $q2->where('profession', 'like', '%' . $searchTerm . '%')
+                         ->orWhere('bio', 'like', '%' . $searchTerm . '%');
                   });
             });
         }
@@ -60,18 +61,30 @@ class SearchController extends Controller
             });
         }
 
-        if ($request->filled('location')) {
-            $query->whereHas('professionalProfile', function ($q) use ($request) {
-                $q->where(function ($q2) use ($request) {
-                    $q2->where('city', 'like', '%' . $request->location . '%')
-                      ->orWhere('state', 'like', '%' . $request->location . '%');
+        // Geo filtering
+        if ($request->filled(['lat', 'lng'])) {
+            $lat = $request->lat;
+            $lng = $request->lng;
+            $radius = $request->radius ?? 50;
+            
+            $query->whereHas('professionalProfile', function ($q) use ($lat, $lng, $radius) {
+                $q->nearby($lat, $lng, $radius);
+            });
+        } elseif ($request->filled('location')) {
+            // Fallback text search on existing fields since city/state columns don't exist
+            // TODO: Integrate geocoding for lat/lng to use nearby() scope
+            $searchTerm = trim($request->location);
+            $query->whereHas('professionalProfile', function ($q) use ($searchTerm) {
+                $q->where(function ($q2) use ($searchTerm) {
+                    $q2->where('profession', 'like', '%' . $searchTerm . '%')
+                       ->orWhere('bio', 'like', '%' . $searchTerm . '%');
                 });
             });
         }
 
         $professionals = $query->latest()->paginate(15);
 
-        return view('professional.index', compact('professionals'));
+        return view('professionals.index', compact('professionals'));
     }
 
     public function products(Request $request)

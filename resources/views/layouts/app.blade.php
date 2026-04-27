@@ -16,7 +16,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Google Maps -->
-    <script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') ?? '' }}&libraries=places"></script>
+    <script loading="async" src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') ?? '' }}&libraries=places"></script>
+
     
     <style>
         /* BuildConnect Brand Colors */
@@ -51,10 +52,18 @@
             font-family: 'Inter', sans-serif;
             background-color: var(--gray-50);
             color: var(--gray-700);
-            padding-top: 70px;
+            padding-top: 0;
             line-height: 1.5;
             -webkit-font-smoothing: antialiased;
         }
+        
+        /* Adjust for landing page - no navbar padding */
+        @if(request()->routeIs('home'))
+        body {
+            padding-top: 0 !important;
+            background: var(--gray-50);
+        }
+        @endif
         
         /* Typography */
         h1, h2, h3, h4, h5, h6 {
@@ -506,11 +515,12 @@
         .text-brand-gold { color: var(--brand-gold); }
         .text-brand-dark { color: var(--brand-dark); }
         
-        @stack('styles')
+    @stack('styles')
     </style>
 </head>
-<body>
-    <!-- Navbar -->
+<body @if(!request()->routeIs('home')) style="padding-top: 72px;" @endif>
+@if(!request()->routeIs('home'))
+<!-- Navbar -->
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid navbar-container">
             <a class="navbar-brand" href="{{ route('home') }}">
@@ -625,6 +635,8 @@
             </div>
         </div>
     </nav>
+@endif
+
 
     <!-- Main Content -->
     <main>

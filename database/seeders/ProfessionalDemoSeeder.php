@@ -13,9 +13,8 @@ class ProfessionalDemoSeeder extends Seeder
     {
         $stages = ServiceEcosystem::getStages();
         $professions = [];
-        foreach ($stages as $stage) {
-            $professions = array_merge($professions, $stage['professions']);
-        }
+        $allProfessions = ServiceEcosystem::getAllProfessions();
+        $professions = array_unique($allProfessions);
         $professions = array_unique($professions);
 
         foreach ($professions as $profession) {
@@ -42,8 +41,8 @@ class ProfessionalDemoSeeder extends Seeder
                     'years_experience' => rand(3, 20),
                     'hourly_rate' => rand(50, 200),
                     'bio' => 'Experienced ' . $profession . ' with ' . rand(50, 200) . '+ projects completed.',
-// 'skills' => json_encode([$profession, 'Real Estate', 'Project Management']), // removed: column missing
-// 'stage' => $stageNum, // temp comment: column missing, ecosystem still queries all
+                    'latitude' => rand(-6.8, -6.7) + (rand(0,100)/10000),
+                    'longitude' => rand(39.1, 39.3) + (rand(0,100)/10000),
                 ]
             );
             echo "Ensured {$profession} (stage {$stageNum})\n";

@@ -9,10 +9,16 @@ class Order extends Model
 {
     use HasFactory;
 
-protected $fillable = [
+    protected $fillable = [
         'order_number',
         'user_id',
         'store_id',
+        'driver_id',
+        'delivery_type',
+        'delivery_price',
+        'delivery_status',
+        'delivery_eta',
+        'delivery_route',
         'subtotal',
         'tax',
         'total',
@@ -29,6 +35,8 @@ protected $fillable = [
 
     protected $casts = [
         'shipping_address' => 'array',
+        'delivery_route' => 'array',
+        'delivery_eta' => 'datetime',
     ];
 
     public function user()
@@ -41,12 +49,17 @@ protected $fillable = [
         return $this->belongsTo(Store::class);
     }
 
+    public function driver()
+    {
+        return $this->belongsTo(Driver::class);
+    }
+
     public function items()
     {
         return $this->hasMany(OrderItem::class);
     }
 
-public function getStatusBadgeAttribute()
+    public function getStatusBadgeAttribute()
     {
         return \App\Models\OrderStatus::badges()[$this->status] ?? 'bg-secondary';
     }

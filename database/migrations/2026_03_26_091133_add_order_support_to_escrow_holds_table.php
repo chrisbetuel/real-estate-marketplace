@@ -11,10 +11,16 @@ return new class extends Migration
      */
 public function up(): void
     {
-        Schema::table('escrow_holds', function (Blueprint $table) {
-            $table->foreignId('order_id')->nullable()->constrained()->onDelete('cascade');
-            $table->foreignId('store_id')->nullable()->constrained()->onDelete('cascade');
-        });
+        if (Schema::hasTable('escrow_holds')) {
+            Schema::table('escrow_holds', function (Blueprint $table) {
+                if (!Schema::hasColumn('escrow_holds', 'order_id')) {
+                    $table->foreignId('order_id')->nullable()->constrained('orders')->onDelete('cascade');
+                }
+                if (!Schema::hasColumn('escrow_holds', 'store_id')) {
+                    $table->foreignId('store_id')->nullable()->constrained()->onDelete('cascade');
+                }
+            });
+        }
     }
 
     /**
@@ -22,10 +28,17 @@ public function up(): void
      */
 public function down(): void
     {
-        Schema::table('escrow_holds', function (Blueprint $table) {
-            $table->dropForeign(['order_id']);
-            $table->dropForeign(['store_id']);
-            $table->dropColumn(['order_id', 'store_id']);
-        });
+        if (Schema::hasTable('escrow_holds')) {
+            Schema::table('escrow_holds', function (Blueprint $table) {
+                if (Schema::hasColumn('escrow_holds', 'order_id')) {
+                    $table->dropForeign(['order_id']);
+                    $table->dropColumn('order_id');
+                }
+                if (Schema::hasColumn('escrow_holds', 'store_id')) {
+                    $table->dropForeign(['store_id']);
+                    $table->dropColumn('store_id');
+                }
+            });
+        }
     }
 };

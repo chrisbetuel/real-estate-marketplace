@@ -26,6 +26,7 @@ class Product extends Model implements HasMedia
         'is_active',
         'views_count',
         'featured_until',
+        'images',
     ];
 
     protected $casts = [
@@ -34,7 +35,17 @@ class Product extends Model implements HasMedia
         'featured_until' => 'datetime',
         'price_sale' => 'decimal:2',
         'price_rent' => 'decimal:2',
+        'quantity' => 'integer',
     ];
+
+    /**
+     * Scope for available products (active + in stock)
+     */
+    public function scopeAvailable($query)
+    {
+        return $query->where('is_active', true)
+                     ->where('quantity', '>', 0);
+    }
 
     /**
      * Get the store that owns the product
@@ -49,7 +60,7 @@ class Product extends Model implements HasMedia
      */
     public function reviews()
     {
-        return $this->morphMany(Review::class, 'reviewable');
+        return $this->hasMany(Review::class);
     }
 
     /**
@@ -126,5 +137,49 @@ class Product extends Model implements HasMedia
     public function scopeFeatured($query)
     {
         return $query->where('featured_until', '>', now());
+    }
+
+    /**
+     * Accessor for unified price display
+     */
+    public function getPriceAttribute()
+    {
+        return $this->price_sale ?? $this->price_rent ?? $this->price ?? 0;
+    }
+
+    /**
+     * Accessor for backward-compatible images (MediaLibrary + legacy JSON)
+     */
+    public function getImagesAttribute()
+    {
+        try {
+            // Try MediaLibrary first (only if table exists)
+            $media = $this->getMedia('product_images');
+            if ($media->isNotEmpty()) {
+                return $media->map(function ($item) {
+                    return [
+                        'url' => $item->getUrl('thumb'),
+                        'original' => $item->getUrl()
+                    ];
+                })->toArray();
+            }
+        } catch (\Exception $e) {
+            // MediaLibrary table missing - skip silently
+        }
+
+        // Fallback to legacy JSON field
+        $legacy = $this->attributes['images'] ?? null;
+        return $legacy ? json_decode($legacy, true) : [];
+    }
+
+    /**
+     * Get first image URL for quick display
+     */
+    public function getFirstImageAttribute()
+    {
+        $images = $this->images;
+        return is_array($images) && count($images) > 0 
+            ? (is_string($images[0]) ? asset('storage/' . $images[0]) : ($images[0]['url'] ?? asset('images/no-image.png')))
+            : asset('images/no-image.png');
     }
 }

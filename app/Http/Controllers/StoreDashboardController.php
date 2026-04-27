@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Store;
 use App\Models\Product;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class StoreDashboardController extends Controller
 {
@@ -139,6 +140,10 @@ class StoreDashboardController extends Controller
     {
         $store = Auth::user()->store;
         
+        if (!$store) {
+            return redirect()->back()->with('error', 'Please complete your store profile first.');
+        }
+        
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
@@ -158,20 +163,27 @@ class StoreDashboardController extends Controller
             }
         }
         
-        $product = Product::create([
-            'store_id' => $store->id,
-            'name' => $validated['name'],
-            'description' => $validated['description'],
-            'price' => $validated['price'],
-            'stock' => $validated['stock'],
-            'category' => $validated['category'],
-            'images' => json_encode($images),
-            'is_active' => true,
-        ]);
-        
-        // FIXED: Use correct route name
-        return redirect()->route('store-owner.products')
-            ->with('success', 'Product added successfully!');
+        try {
+            DB::transaction(function () use ($store, $validated, $images) {
+                Product::create([
+                    'store_id' => $store->id,
+                    'name' => $validated['name'],
+                    'description' => $validated['description'],
+                    'price_sale' => $validated['price'],
+                    'quantity' => $validated['stock'],
+                    'type' => 'sale',
+                    'category' => $validated['category'],
+                    'images' => json_encode($images),
+                    'is_active' => true,
+                ]);
+            });
+            
+            return redirect()->route('store-owner.products')
+                ->with('success', 'Product added successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Failed to create product. Please try again. Error: ' . $e->getMessage());
+        }
     }
 
     /**

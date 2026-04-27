@@ -39,34 +39,30 @@
         @forelse($store->products as $product)
             <div class="col-md-3 mb-4">
                 <div class="card h-100 product-card">
-                    @php
-                        $images = json_decode($product->images, true);
-                    @endphp
-                    <div class="product-image">
-                        @if($images && count($images) > 0)
-                            <img src="{{ asset('storage/' . $images[0]) }}" 
-                                 alt="{{ $product->name }}">
-                        @else
-                            <div class="no-image">
-                                <i class="fas fa-image fa-3x"></i>
-                            </div>
+<div class="product-image">
+                        <img src="{{ $product->first_image }}" 
+                             alt="{{ $product->name }}" 
+                             onerror="this.src='{{ asset('images/no-image.png') }}'">
+@if($product->quantity <= 0)
+                            <div class="out-of-stock-badge">Out of Stock</div>
                         @endif
-                        @if($product->stock <= 0)
+                    </div>
+@if($product->quantity <= 0)
                             <div class="out-of-stock-badge">Out of Stock</div>
                         @endif
                     </div>
                     <div class="card-body">
                         <h6 class="card-title">{{ Str::limit($product->name, 40) }}</h6>
-                        <div class="product-price">${{ number_format($product->price, 2) }}</div>
-                        @if($product->stock > 0 && $product->stock <= 10)
-                            <div class="stock-warning">Only {{ $product->stock }} left!</div>
+                        <div class="product-price">${{ number_format($product->price ?? 0, 2) }}</div>
+@if($product->quantity > 0 && $product->quantity <= 10)
+                            <div class="stock-warning">Only {{ $product->quantity }} left!</div>
                         @endif
                     </div>
                     <div class="card-footer bg-transparent">
                         <a href="{{ route('shop.product', $product->id) }}" class="btn btn-outline-custom w-100 mb-2">
                             View Details
                         </a>
-                        @if($product->stock > 0)
+@if($product->quantity > 0)
                             <form action="{{ route('shop.add-to-cart', $product->id) }}" method="POST" class="add-to-cart-form">
                                 @csrf
                                 <input type="hidden" name="quantity" value="1">

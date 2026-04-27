@@ -32,10 +32,7 @@ class NewMessage implements ShouldBroadcast
     {
         return [
             'id' => $this->message->id,
-            'message' => $this->message->message,
-            'sender_id' => $this->message->sender_id,
-            'sender_name' => $this->message->sender->name,
-            'conversation_id' => $this->message->conversation_id,
+            'message' => $this->message->message,\n            'sender_id' => $this->message->user_id,\n            'sender_name' => $this->message->user->name,\n            'conversation_id' => $this->message->conversation_id,
             'created_at' => $this->message->created_at->toDateTimeString(),
             'attachments' => $this->message->attachments
         ];
