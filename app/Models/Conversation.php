@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Conversation extends Model
 {
@@ -11,6 +12,7 @@ class Conversation extends Model
 
     protected $fillable = [
         'job_id',
+        'store_id',
         'status',
         'last_message_at'
     ];
@@ -19,9 +21,14 @@ class Conversation extends Model
         'last_message_at' => 'datetime',
     ];
 
-    public function job()
+    public function job(): BelongsTo
     {
         return $this->belongsTo(Job::class);
+    }
+
+    public function store(): BelongsTo
+    {
+        return $this->belongsTo(Store::class);
     }
 
     public function participants()
@@ -45,16 +52,16 @@ class Conversation extends Model
     {
         $participant = $this->participants()->where('user_id', $userId)->first();
         $lastReadAt = $participant ? $participant->pivot->last_read_at : null;
-        
+
         $query = $this->messages()->where('user_id', '!=', $userId);
-        
+
         if ($lastReadAt) {
             $query->where('created_at', '>', $lastReadAt);
         }
-        
+
         return $query->count();
     }
-    
+
     public function markAsRead($userId)
     {
         $this->participants()

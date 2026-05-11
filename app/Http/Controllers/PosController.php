@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\PosExpense;
 use App\Models\PosSale;
 use App\Models\PosSaleItem;
 use App\Models\PosShop;
@@ -32,10 +33,17 @@ class PosController extends Controller
             ->where('status', 'completed')
             ->get();
 
+        $todayExpenses = PosExpense::where('user_id', Auth::id())
+            ->whereDate('expense_date', today())
+            ->get();
+
         $stats = [
             'today_sales_count' => $todaySales->count(),
             'today_revenue' => $todaySales->sum('total_amount'),
             'today_items' => PosSaleItem::whereIn('pos_sale_id', $todaySales->pluck('id'))->sum('quantity'),
+            'today_expenses_count' => $todayExpenses->count(),
+            'today_expenses_total' => $todayExpenses->sum('amount'),
+            'today_net' => $todaySales->sum('total_amount') - $todayExpenses->sum('amount'),
         ];
 
         $recentSales = PosSale::where('user_id', Auth::id())
@@ -159,16 +167,28 @@ class PosController extends Controller
             ->with('items')
             ->get();
 
+        $expenses = PosExpense::where('user_id', Auth::id())
+            ->whereDate('expense_date', $date)
+            ->get();
+
+        $totalRevenue = $sales->sum('total_amount');
+        $totalExpenses = $expenses->sum('amount');
+
         $report = [
             'date' => $date,
             'total_sales' => $sales->count(),
-            'total_revenue' => $sales->sum('total_amount'),
+            'total_revenue' => $totalRevenue,
             'total_subtotal' => $sales->sum('subtotal'),
             'total_tax' => $sales->sum('tax_amount'),
             'total_discount' => $sales->sum('discount_amount'),
             'total_items_sold' => PosSaleItem::whereIn('pos_sale_id', $sales->pluck('id'))->sum('quantity'),
             'payment_breakdown' => $sales->groupBy('payment_method')->map->count(),
             'sales' => $sales,
+            'total_expenses' => $totalExpenses,
+            'expenses_count' => $expenses->count(),
+            'expense_breakdown' => $expenses->groupBy('category')->map->sum('amount'),
+            'expenses' => $expenses,
+            'net_profit' => $totalRevenue - $totalExpenses,
         ];
 
         return view('pos.daily-report', compact('report'));
@@ -224,6 +244,110 @@ class PosController extends Controller
                 'stock' => $product->quantity,
             ],
         ]);
+    }
+
+    /* ================================================
+       EXPENSES
+       ================================================ */
+
+    public function expenses(Request $request)
+    {
+        $query = PosExpense::where('user_id', Auth::id());
+
+        if ($request->filled('from')) {
+            $query->whereDate('expense_date', '>=', $request->input('from'));
+        }
+        if ($request->filled('to')) {
+            $query->whereDate('expense_date', '<=', $request->input('to'));
+        }
+        if ($request->filled('category')) {
+            $query->where('category', $request->input('category'));
+        }
+
+        $expenses = $query->latest('expense_date')->paginate(20);
+        $totalAmount = (clone $query)->sum('amount');
+
+        $categories = PosExpense::where('user_id', Auth::id())
+            ->select('category')
+            ->distinct()
+            ->pluck('category');
+
+        return view('pos.expenses.index', compact('expenses', 'totalAmount', 'categories'));
+    }
+
+    public function createExpense()
+    {
+        return view('pos.expenses.create');
+    }
+
+    public function storeExpense(Request $request)
+    {
+        $validated = $request->validate([
+            'category' => 'required|string|max:100',
+            'description' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0.01',
+            'expense_date' => 'required|date',
+            'payment_method' => 'required|string|in:cash,card,mobile_money',
+            'receipt_number' => 'nullable|string|max:100',
+            'notes' => 'nullable|string',
+        ]);
+
+        PosExpense::create([
+            'user_id' => Auth::id(),
+            'category' => $validated['category'],
+            'description' => $validated['description'],
+            'amount' => $validated['amount'],
+            'expense_date' => $validated['expense_date'],
+            'payment_method' => $validated['payment_method'],
+            'receipt_number' => $validated['receipt_number'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+        ]);
+
+        return redirect()->route('pos.expenses')
+            ->with('success', 'Expense recorded successfully.');
+    }
+
+    public function editExpense(PosExpense $expense)
+    {
+        if ($expense->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        return view('pos.expenses.edit', compact('expense'));
+    }
+
+    public function updateExpense(Request $request, PosExpense $expense)
+    {
+        if ($expense->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'category' => 'required|string|max:100',
+            'description' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0.01',
+            'expense_date' => 'required|date',
+            'payment_method' => 'required|string|in:cash,card,mobile_money',
+            'receipt_number' => 'nullable|string|max:100',
+            'notes' => 'nullable|string',
+        ]);
+
+        $expense->update($validated);
+
+        return redirect()->route('pos.expenses')
+            ->with('success', 'Expense updated successfully.');
+    }
+
+    public function destroyExpense(PosExpense $expense)
+    {
+        if ($expense->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $expense->delete();
+
+        return redirect()->route('pos.expenses')
+            ->with('success', 'Expense deleted successfully.');
     }
 
     /* ================================================

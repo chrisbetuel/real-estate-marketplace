@@ -39,7 +39,7 @@ class ProfileController extends Controller
             'new_password' => 'nullable|string|min:8|confirmed',
         ]);
         
-        // Update user basic info - email is NOT updated
+        // Update user basic info
         $user->name = $validated['name'];
         $user->phone = $validated['phone'] ?? $user->phone;
         $user->address = $validated['address'] ?? $user->address;
@@ -63,7 +63,7 @@ class ProfileController extends Controller
                 'bio' => 'nullable|string',
             ]);
             
-            $profile = ProfessionalProfile::updateOrCreate(
+            ProfessionalProfile::updateOrCreate(
                 ['user_id' => $user->id],
                 [
                     'profession' => $professionalData['profession'],
@@ -85,12 +85,21 @@ class ProfileController extends Controller
         
         $user = Auth::user();
         
-        // Delete old image
+        // Delete old image if exists
         if ($user->profile_image && Storage::disk('public')->exists($user->profile_image)) {
             Storage::disk('public')->delete($user->profile_image);
         }
         
-        $path = $request->file('profile_image')->store('profile_images', 'public');
+        // Get the uploaded file
+        $file = $request->file('profile_image');
+        
+        // Create a unique filename
+        $filename = time() . '_' . $user->id . '.' . $file->getClientOriginalExtension();
+        
+        // Store in public disk under profile_images directory
+        $path = $file->storeAs('profile_images', $filename, 'public');
+        
+        // Save path to database
         $user->profile_image = $path;
         $user->save();
         

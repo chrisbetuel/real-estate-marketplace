@@ -36,10 +36,11 @@ class ClientDashboardController extends Controller
             'open_jobs' => $jobs->where('status', 'open')->count(),
             'in_progress_jobs' => $jobs->where('status', 'in_progress')->count(),
             'completed_jobs' => $jobs->where('status', 'completed')->count(),
-            'total_bids_received' => Bid::whereIn('job_id', $jobs->pluck('id'))->count(),
-            'pending_bids' => Bid::whereIn('job_id', $jobs->pluck('id'))
+            'total_bids_received' => Bid::whereIn('project_job_id', $jobs->pluck('id'))->count(),
+            'pending_bids' => Bid::whereIn('project_job_id', $jobs->pluck('id'))
                 ->where('status', 'pending')
                 ->count(),
+
         ];
 
 $unreadCount = \App\Models\Message::whereHas('conversation', function($query) {
@@ -51,13 +52,22 @@ $unreadCount = \App\Models\Message::whereHas('conversation', function($query) {
           ->count();
         
         // Recent activity
-        $recentBids = Bid::whereIn('job_id', $jobs->pluck('id'))
+        $jobIds = $jobs->pluck('id');
+
+        $recentBids = Bid::whereIn('project_job_id', $jobIds)
             ->with(['job', 'professional'])
             ->latest()
             ->take(10)
             ->get();
-        
+
+        // If the jobs collection is empty, prevent misleading sidebar placeholders
+        // (we still want the counts above to be correct)
+        if ($jobIds->isEmpty()) {
+            $recentBids = collect();
+        }
+
         return view('client.dashboard', compact('jobs', 'stats', 'recentBids', 'unreadCount'));
+
     }
     
     public function jobs()

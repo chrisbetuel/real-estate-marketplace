@@ -565,15 +565,148 @@
     }
 
     /* Responsive */
-    @media (max-width: 600px) {
+@media (max-width: 600px) {
         .chat-app {
             padding: 0;
         }
-        
+
         .chat-container {
             border-radius: 0;
             height: 100vh;
         }
+    }
+
+    /* Call Modal Styles */
+    .call-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #1E2A3A;
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .call-modal-content {
+        width: 100%;
+        max-width: 800px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .call-header {
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .call-header h4 {
+        color: white;
+        margin: 0;
+    }
+
+    .close-call {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 28px;
+        cursor: pointer;
+    }
+
+    .call-body {
+        flex: 1;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .video-container {
+        width: 100%;
+        max-width: 400px;
+        aspect-ratio: 16/9;
+        background: #0F172A;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .video-container video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .video-container.remote {
+        max-width: 600px;
+    }
+
+    .remote-placeholder {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 120px;
+        height: 120px;
+    }
+
+    .remote-placeholder img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .call-status {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: rgba(255,255,255,0.7);
+        font-size: 14px;
+    }
+
+    .call-actions {
+        padding: 30px;
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+    }
+
+    .call-btn {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        transition: all 0.2s;
+    }
+
+    .call-btn.mute, .call-btn.video {
+        background: rgba(255,255,255,0.2);
+        color: white;
+    }
+
+    .call-btn.end {
+        background: #EF4444;
+        color: white;
+    }
+
+    .call-btn:hover {
+        transform: scale(1.1);
+    }
+
+    .call-btn.active {
+        background: #EF4444;
     }
 </style>
 @endpush
@@ -760,20 +893,158 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Call button
+// Call button - initiate audio call
     const callBtn = document.getElementById('callBtn');
     if (callBtn) {
         callBtn.addEventListener('click', function() {
-            showNotification('Call feature coming soon', 'info');
+            initiateCall('audio');
         });
     }
-    
-    // Video button
+
+    // Video button - initiate video call
     const videoBtn = document.getElementById('videoBtn');
     if (videoBtn) {
         videoBtn.addEventListener('click', function() {
-            showNotification('Video call feature coming soon', 'info');
+            initiateCall('video');
         });
+    }
+
+    // Initialize call function
+async function initiateCall(callType) {
+        try {
+            const response = await fetch('{{ route("messages.call.initiate") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    conversation_id: {{ $conversation->id }},
+                    type: callType
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                showNotification(data.message || (callType === 'video' ? 'Video' : 'Audio') + ' call initiated', 'success');
+                // Open call modal
+                openCallModal(callType, data.call_id);
+            } else {
+                throw new Error(data.error || 'Failed to initiate call');
+            }
+        } catch (error) {
+            console.error('Call error:', error);
+            showNotification(error.message || 'Failed to initiate call. User may be offline.', 'error');
+        }
+    }
+
+    // Call modal handling
+    function openCallModal(callType, callId) {
+        // Create modal if not exists
+        let modal = document.getElementById('callModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'callModal';
+            modal.className = 'call-modal';
+            modal.innerHTML = `
+                <div class="call-modal-content">
+                    <div class="call-header">
+                        <h4 id="callTypeTitle">${callType === 'video' ? 'Video' : 'Audio'} Call</h4>
+                        <button class="close-call" id="closeCallModal">&times;</button>
+                    </div>
+                    <div class="call-body">
+                        <div class="video-container" id="localVideoContainer">
+                            <video id="localVideo" autoplay muted playsinline></video>
+                        </div>
+                        <div class="video-container remote" id="remoteVideoContainer">
+                            <video id="remoteVideo" autoplay playsinline></video>
+                            <div class="remote-placeholder" id="remotePlaceholder">
+                                <img src="{{ $otherUser->profile_image_url ?? 'https://ui-avatars.com/api/?background=1E2A3A&color=F5A623&name=' . urlencode($otherUser->name ?? 'User') }}" alt="{{ $otherUser->name ?? 'User' }}">
+                            </div>
+                        </div>
+                        <div class="call-status" id="callStatus">Connecting...</div>
+                    </div>
+                    <div class="call-actions">
+                        <button class="call-btn mute" id="toggleMuteBtn" title="Mute">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button class="call-btn video" id="toggleVideoBtn" title="Toggle Video">
+                            <i class="fas fa-video"></i>
+                        </button>
+                        <button class="call-btn end" id="endCallBtn" title="End Call">
+                            <i class="fas fa-phone-slash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        modal.style.display = 'flex';
+
+        // Setup event listeners
+        document.getElementById('closeCallModal').addEventListener('click', () => closeCallModal());
+        document.getElementById('endCallBtn').addEventListener('click', () => endCall(callId));
+
+        // Start local video
+        startLocalVideo(callType);
+    }
+
+    async function startLocalVideo(callType) {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: true,
+                video: callType === 'video'
+            });
+
+            const localVideo = document.getElementById('localVideo');
+            if (localVideo && callType === 'video') {
+                localVideo.srcObject = stream;
+            }
+
+            // Hide local video for audio-only calls
+            if (callType === 'audio') {
+                const container = document.getElementById('localVideoContainer');
+                if (container) container.style.display = 'none';
+            }
+
+            showNotification('Call connected - waiting for answer', 'info');
+        } catch (error) {
+            console.error('Media error:', error);
+            showNotification('Could not access camera/microphone', 'error');
+        }
+    }
+
+    function closeCallModal() {
+        const modal = document.getElementById('callModal');
+        if (modal) {
+            modal.style.display = 'none';
+
+            // Stop all tracks
+            const localVideo = document.getElementById('localVideo');
+            if (localVideo && localVideo.srcObject) {
+                localVideo.srcObject.getTracks().forEach(track => track.stop());
+            }
+        }
+    }
+
+    async function endCall(callId) {
+        try {
+            await fetch('/messages/call/end', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({ call_id: callId })
+            });
+        } catch (e) {
+            console.error('Error ending call:', e);
+        } finally {
+            closeCallModal();
+        }
     }
     
     // Menu button

@@ -88,6 +88,20 @@ a { text-decoration: none; color: inherit; }
       <div class="hero__eyebrow"><div class="hero__eyebrow-line"></div><span>Point of Sale</span></div>
       <h1>Single Shop <em>Management</em></h1>
       <p>Manage one store effortlessly — products, inventory, sales, and reporting all in one place.</p>
+      <div style="display:flex;gap:24px;margin-top:24px;flex-wrap:wrap;">
+        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);padding:14px 24px;border-radius:3px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">Today's Revenue</div>
+          <div style="font-size:1.4rem;font-weight:700;color:var(--white);">${{ number_format($stats['today_revenue'], 2) }}</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);padding:14px 24px;border-radius:3px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">Today's Expenses</div>
+          <div style="font-size:1.4rem;font-weight:700;color:var(--white);">${{ number_format($stats['today_expenses_total'], 2) }}</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);padding:14px 24px;border-radius:3px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">Net Profit</div>
+          <div style="font-size:1.4rem;font-weight:700;color:var(--white);">${{ number_format($stats['today_net'], 2) }}</div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -116,8 +130,14 @@ a { text-decoration: none; color: inherit; }
       <div class="card">
         <div class="card__icon"><i class="fas fa-receipt"></i></div>
         <h3>Recent Receipts</h3>
-        <p>Access the latest receipts from today’s sales for refunds or customer queries.</p>
+        <p>Access the latest receipts from today's sales for refunds or customer queries.</p>
         <a href="{{ route('pos.history') }}" class="btn btn--gold">View Receipts →</a>
+      </div>
+      <div class="card">
+        <div class="card__icon"><i class="fas fa-file-invoice-dollar"></i></div>
+        <h3>Expenses</h3>
+        <p>Record and track business expenses. Today: {{ $stats['today_expenses_count'] }} expense{{ $stats['today_expenses_count'] != 1 ? 's' : '' }} (${{ number_format($stats['today_expenses_total'], 2) }})</p>
+        <a href="{{ route('pos.expenses') }}" class="btn btn--gold">Manage Expenses →</a>
       </div>
     </div>
   </div>

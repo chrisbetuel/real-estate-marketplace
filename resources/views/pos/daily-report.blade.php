@@ -43,12 +43,16 @@ body { font-family: var(--f-sans); background: var(--cream); color: var(--ink); 
 .date-bar button:hover { background: var(--gold); color: var(--ink); }
 
 /* Stats grid */
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 40px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 40px; }
 .stat-card { background: var(--white); border: 1px solid var(--border); border-radius: 3px; padding: 24px; text-align: center; transition: all 0.2s; }
 .stat-card:hover { box-shadow: 0 8px 24px rgba(12,15,20,0.06); transform: translateY(-2px); }
 .stat-card__icon { width: 44px; height: 44px; background: var(--gold-pale); border-radius: 2px; display: inline-flex; align-items: center; justify-content: center; color: var(--gold); font-size: 18px; margin-bottom: 14px; }
-.stat-card__val { font-size: 1.6rem; font-weight: 700; color: var(--ink); display: block; margin-bottom: 4px; }
+.stat-card__val { font-size: 1.5rem; font-weight: 700; color: var(--ink); display: block; margin-bottom: 4px; }
 .stat-card__lbl { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--slate); }
+.stat-card--profit { border-color: var(--gold); }
+.stat-card--profit .stat-card__icon { background: var(--gold); color: var(--ink); }
+.stat-card--expense { border-color: #FEF2F2; }
+.stat-card--expense .stat-card__icon { background: #FEF2F2; color: #DC2626; }
 
 /* Table */
 .table-wrap { background: var(--white); border: 1px solid var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 32px; }
@@ -92,7 +96,7 @@ td strong { color: var(--ink); }
   <div class="page">
     <div class="page__hd">
       <h1>Daily Sales Report</h1>
-      <p>Review your sales performance for a specific day.</p>
+      <p>Review your sales and expense performance for a specific day.</p>
     </div>
 
     <form method="GET" action="{{ route('pos.daily-report') }}" class="date-bar">
@@ -110,6 +114,16 @@ td strong { color: var(--ink); }
         <div class="stat-card__icon"><i class="fas fa-dollar-sign"></i></div>
         <span class="stat-card__val">${{ number_format($report['total_revenue'], 2) }}</span>
         <span class="stat-card__lbl">Total Revenue</span>
+      </div>
+      <div class="stat-card stat-card--expense">
+        <div class="stat-card__icon"><i class="fas fa-file-invoice-dollar"></i></div>
+        <span class="stat-card__val">${{ number_format($report['total_expenses'], 2) }}</span>
+        <span class="stat-card__lbl">Expenses</span>
+      </div>
+      <div class="stat-card stat-card--profit">
+        <div class="stat-card__icon"><i class="fas fa-chart-line"></i></div>
+        <span class="stat-card__val">${{ number_format($report['net_profit'], 2) }}</span>
+        <span class="stat-card__lbl">Net Profit</span>
       </div>
       <div class="stat-card">
         <div class="stat-card__icon"><i class="fas fa-percentage"></i></div>
@@ -170,6 +184,48 @@ td strong { color: var(--ink); }
         </div>
       @endif
     </div>
+
+    @if(count($report['expense_breakdown']) > 0 || $report['expenses']->count() > 0)
+      <div class="breakdown">
+        @foreach($report['expense_breakdown'] as $category => $amount)
+          <div class="breakdown-item">
+            <i class="fas fa-tag"></i>
+            <span>{{ $category }}: ${{ number_format($amount, 2) }}</span>
+          </div>
+        @endforeach
+      </div>
+
+      <div class="table-wrap">
+        <h3>Expense Details</h3>
+        @if($report['expenses']->count() > 0)
+          <table>
+            <thead>
+              <tr>
+                <th>Expense #</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach($report['expenses'] as $expense)
+                <tr>
+                  <td><strong>{{ $expense->expense_number }}</strong></td>
+                  <td>{{ $expense->category }}</td>
+                  <td>{{ $expense->description }}</td>
+                  <td><strong>${{ number_format($expense->amount, 2) }}</strong></td>
+                </tr>
+              @endforeach
+            </tbody>
+          </table>
+        @else
+          <div class="empty">
+            <i class="fas fa-file-invoice-dollar"></i>
+            <p>No expenses recorded for this day.</p>
+          </div>
+        @endif
+      </div>
+    @endif
   </div>
 </div>
 

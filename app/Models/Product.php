@@ -14,14 +14,14 @@ class Product extends Model implements HasMedia
     protected $fillable = [
         'name',
         'description',
-        'type', // 'sale' or 'rent'
+        'type',
         'category',
         'price_sale',
         'price_rent',
-        'rent_period', // 'day', 'week', 'month', 'year'
+        'rent_period',
         'quantity',
-        'condition', // 'new', 'like_new', 'good', 'fair'
-        'specifications', // JSON field for product specs
+        'condition',
+        'specifications',
         'store_id',
         'is_active',
         'views_count',
@@ -31,6 +31,7 @@ class Product extends Model implements HasMedia
 
     protected $casts = [
         'specifications' => 'array',
+        'images' => 'array',
         'is_active' => 'boolean',
         'featured_until' => 'datetime',
         'price_sale' => 'decimal:2',
@@ -45,66 +46,6 @@ class Product extends Model implements HasMedia
     {
         return $query->where('is_active', true)
                      ->where('quantity', '>', 0);
-    }
-
-    /**
-     * Get the store that owns the product
-     */
-    public function store()
-    {
-        return $this->belongsTo(Store::class);
-    }
-
-    /**
-     * Get the reviews for the product
-     */
-    public function reviews()
-    {
-        return $this->hasMany(Review::class);
-    }
-
-    /**
-     * Get the average rating
-     */
-    public function getAverageRatingAttribute()
-    {
-        return $this->reviews()->avg('rating') ?? 0;
-    }
-
-    /**
-     * Get the total reviews count
-     */
-    public function getReviewsCountAttribute()
-    {
-        return $this->reviews()->count();
-    }
-
-    /**
-     * Check if product is featured
-     */
-    public function getIsFeaturedAttribute()
-    {
-        return $this->featured_until && $this->featured_until->isFuture();
-    }
-
-    /**
-     * Register media collections
-     */
-    public function registerMediaCollections(): void
-    {
-        $this->addMediaCollection('product_images')
-            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp'])
-            ->maxNumberOfFiles(10);
-
-        $this->addMediaConversion('thumb')
-            ->width(200)
-            ->height(200)
-            ->sharpen(10);
-
-        $this->addMediaConversion('medium')
-            ->width(600)
-            ->height(600)
-            ->sharpen(10);
     }
 
     /**
@@ -139,37 +80,42 @@ class Product extends Model implements HasMedia
         return $query->where('featured_until', '>', now());
     }
 
-    /**
-     * Accessor for unified price display
-     */
-    public function getPriceAttribute()
+    public function store()
     {
-        return $this->price_sale ?? $this->price_rent ?? $this->price ?? 0;
+        return $this->belongsTo(Store::class);
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function getAverageRatingAttribute()
+    {
+        return $this->reviews()->avg('rating') ?? 0;
+    }
+
+    public function getReviewsCountAttribute()
+    {
+        return $this->reviews()->count();
+    }
+
+    public function getIsFeaturedAttribute()
+    {
+        return $this->featured_until && $this->featured_until->isFuture();
+    }
+
+public function getPriceAttribute()
+    {
+        return $this->price_sale ?? $this->price_rent ?? 0;
     }
 
     /**
-     * Accessor for backward-compatible images (MediaLibrary + legacy JSON)
+     * Get stock attribute (alias for quantity)
      */
-    public function getImagesAttribute()
+    public function getStockAttribute()
     {
-        try {
-            // Try MediaLibrary first (only if table exists)
-            $media = $this->getMedia('product_images');
-            if ($media->isNotEmpty()) {
-                return $media->map(function ($item) {
-                    return [
-                        'url' => $item->getUrl('thumb'),
-                        'original' => $item->getUrl()
-                    ];
-                })->toArray();
-            }
-        } catch (\Exception $e) {
-            // MediaLibrary table missing - skip silently
-        }
-
-        // Fallback to legacy JSON field
-        $legacy = $this->attributes['images'] ?? null;
-        return $legacy ? json_decode($legacy, true) : [];
+        return $this->quantity;
     }
 
     /**
@@ -177,9 +123,42 @@ class Product extends Model implements HasMedia
      */
     public function getFirstImageAttribute()
     {
-        $images = $this->images;
-        return is_array($images) && count($images) > 0 
-            ? (is_string($images[0]) ? asset('storage/' . $images[0]) : ($images[0]['url'] ?? asset('images/no-image.png')))
-            : asset('images/no-image.png');
+        // Try Spatie MediaLibrary first
+        try {
+            $media = $this->getFirstMedia('product_images');
+            if ($media) {
+                return $media->getUrl();
+            }
+        } catch (\Exception $e) {
+            // MediaLibrary error - continue to fallback
+        }
+
+        // Fallback to legacy JSON field
+        $legacy = $this->attributes['images'] ?? null;
+        if ($legacy) {
+            $images = json_decode($legacy, true);
+            if (is_array($images) && count($images) > 0) {
+                $firstImage = $images[0];
+                $imagePath = is_string($firstImage) ? $firstImage : ($firstImage['url'] ?? null);
+
+                if ($imagePath) {
+                    // Check if it's a full URL (starts with http:// or https://)
+                    if (preg_match('/^https?:\/\//', $imagePath)) {
+                        return $imagePath;
+                    } else {
+                        return asset('storage/' . ltrim($imagePath, '/'));
+                    }
+                }
+            }
+        }
+
+        return asset('images/no-image.png');
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('product_images')
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'image/jpg'])
+            ->maxNumberOfFiles(10);
     }
 }

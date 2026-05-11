@@ -3,409 +3,659 @@
 @section('title', 'Stores - BuildConnect')
 
 @section('content')
-<div class="container py-5">
-    <!-- Header Section -->
-    <div class="row mb-5">
-        <div class="col-12 text-center">
-            <div class="position-relative d-inline-block">
-                <h1 class="display-4 fw-bold mb-3" style="color: var(--brand-dark);">
-                    Our <span style="color: var(--brand-gold);">Stores</span>
-                </h1>
-                <div style="position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); width: 80px; height: 3px; background: var(--brand-gold); border-radius: 3px;"></div>
-            </div>
-            <p class="lead mt-4" style="color: var(--gray-600); max-width: 600px; margin: 0 auto;">
-                Discover quality products from our trusted partner stores
-            </p>
+<div class="stores-page">
+    <div class="container">
+        <!-- Header -->
+        <div class="page-header">
+            <h1>Our <span>Stores</span></h1>
+            <p>Discover quality products from trusted partners</p>
         </div>
-    </div>
 
-    <!-- Search Section -->
-    <div class="row mb-5">
-        <div class="col-12">
-            <div class="search-card">
-                <form method="GET" action="{{ route('shop.stores') }}">
-                    <div class="search-wrapper">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text" name="search" class="search-input" 
-                               placeholder="Search stores by name or location..." 
-                               value="{{ request('search') }}">
-                        <button type="submit" class="search-btn">Search</button>
-                    </div>
-                </form>
-                
-                @if(request('search'))
-                    <div class="active-filter mt-3">
-                        <span class="filter-badge">
-                            Searching for: "{{ request('search') }}"
-                            <a href="{{ route('shop.stores') }}" class="clear-filter">×</a>
-                        </span>
-                    </div>
-                @endif
-            </div>
+        <!-- Search Bar -->
+        <div class="search-section">
+            <form method="GET" action="{{ route('shop.stores') }}" class="search-form">
+                <div class="search-wrapper">
+                    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <input type="text" name="search" class="search-input" 
+                           placeholder="Search stores by name or location..." 
+                           value="{{ request('search') }}">
+                    <button type="submit" class="search-btn">Search</button>
+                </div>
+            </form>
+            
+            @if(request('search'))
+                <div class="active-filter">
+                    <span class="filter-tag">
+                        "{{ request('search') }}"
+                        <a href="{{ route('shop.stores') }}" class="remove-filter">×</a>
+                    </span>
+                </div>
+            @endif
         </div>
-    </div>
 
-    <!-- Stores Grid -->
-    <div class="row">
-        @forelse($stores as $store)
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="store-card">
-                    <div class="store-card-inner">
-                        <!-- Store Logo -->
-                        <div class="store-logo">
-                            @if($store->logo)
-                                <img src="{{ asset('storage/' . $store->logo) }}" alt="{{ $store->name }}">
+        <!-- Stores List -->
+        <div class="stores-list">
+            @forelse($stores as $store)
+                <div class="store-item">
+                    <!-- Store Logo / Icon -->
+                    <div class="store-icon">
+                        @if($store->logo)
+                            <img src="{{ asset('storage/' . $store->logo) }}" alt="{{ $store->name }}">
+                        @else
+                            <div class="icon-placeholder">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <rect x="3" y="8" width="18" height="14" rx="2"/>
+                                    <path d="M7 8V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2"/>
+                                </svg>
+                            </div>
+                        @endif
+                    </div>
+
+                    <!-- Store Details -->
+                    <div class="store-details">
+                        <div class="store-header">
+                            <h3 class="store-name">{{ $store->name }}</h3>
+                            <div class="store-actions">
+                                <a href="{{ route('shop.store', $store->id) }}" class="btn-view">View Profile</a>
+                                <a href="{{ route('shop.store', $store->id) }}?enquiry=1" class="btn-enquiry">Send Enquiry</a>
+                            </div>
+                        </div>
+
+                        <!-- Store Address -->
+                        <div class="store-address">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                            <span>{{ $store->address ?? $store->location ?? $store->city ?? 'No address provided' }}, {{ $store->city ?? '' }}</span>
+                        </div>
+
+                        <!-- Store Stats Row -->
+                        <div class="store-stats">
+                            @if($store->is_verified ?? true)
+                                <span class="stat-badge verified">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                    Verified
+                                </span>
+                            @endif
+                            @if($store->years_active ?? false)
+                                <span class="stat-badge years">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <polyline points="12 6 12 12 16 14"/>
+                                    </svg>
+                                    {{ $store->years_active }}+ Years with us
+                                </span>
                             @else
-                                <div class="store-logo-placeholder">
-                                    <i class="fas fa-store"></i>
-                                </div>
+                                <span class="stat-badge years">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <polyline points="12 6 12 12 16 14"/>
+                                    </svg>
+                                    {{ \Carbon\Carbon::parse($store->created_at)->diffInYears() }}+ Years with us
+                                </span>
                             @endif
                         </div>
-                        
-                        <!-- Store Info -->
-                        <div class="store-info">
-                            <h3 class="store-name">{{ $store->name }}</h3>
-                            <p class="store-description">{{ Str::limit($store->description, 80) }}</p>
-                            
-                            <!-- Store Stats -->
-                            <div class="store-stats">
-                                <div class="stat-item">
-                                    <i class="fas fa-box"></i>
-                                    <span>{{ $store->products_count }} Products</span>
-                                </div>
-                                @if($store->city)
-                                <div class="stat-item">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    <span>{{ $store->city }}</span>
-                                </div>
-                                @endif
-                            </div>
-                            
-                            <!-- Visit Button -->
-                            <a href="{{ route('shop.store', $store->id) }}" class="btn-visit-store">
-                                Visit Store
-                                <i class="fas fa-arrow-right ms-2"></i>
+
+                        <!-- Contact & Info Row -->
+                        <div class="store-contact">
+                            @if($store->phone)
+                                <span class="contact-item">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+                                    </svg>
+                                    {{ $store->phone }}
+                                </span>
+                            @endif
+                            @if($store->established_year)
+                                <span class="contact-item">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                        <line x1="16" y1="2" x2="16" y2="6"/>
+                                        <line x1="8" y1="2" x2="8" y2="6"/>
+                                        <line x1="3" y1="10" x2="21" y2="10"/>
+                                    </svg>
+                                    {{ $store->established_year }} Established
+                                </span>
+                            @else
+                                <span class="contact-item">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                        <line x1="16" y1="2" x2="16" y2="6"/>
+                                        <line x1="8" y1="2" x2="8" y2="6"/>
+                                        <line x1="3" y1="10" x2="21" y2="10"/>
+                                    </svg>
+                                    Since {{ $store->created_at->format('Y') }}
+                                </span>
+                            @endif
+                        </div>
+
+                        <!-- Action Links -->
+                        <div class="store-links">
+                            <a href="#" class="link-item">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                    <polyline points="22,6 12,13 2,6"/>
+                                </svg>
+                                Email
+                            </a>
+                            <a href="#" class="link-item">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                    <circle cx="12" cy="10" r="3"/>
+                                </svg>
+                                Map
+                            </a>
+                            <a href="#" class="link-item">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                    <line x1="18.5" y1="5.5" x2="19.5" y2="5.5"/>
+                                </svg>
+                                {{ $store->products_count ?? 0 }} Photos
                             </a>
                         </div>
                     </div>
                 </div>
-            </div>
-        @empty
-            <div class="col-12">
+            @empty
                 <div class="empty-state">
-                    <div class="empty-state-icon">
-                        <i class="fas fa-store"></i>
-                    </div>
-                    <h3>No Stores Found</h3>
-                    <p>We couldn't find any stores matching "{{ request('search') }}".</p>
-                    <a href="{{ route('shop.stores') }}" class="btn-clear-search">
-                        <i class="fas fa-arrow-left me-2"></i>Clear Search
-                    </a>
+                    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1">
+                        <rect x="3" y="8" width="18" height="14" rx="2"/>
+                        <path d="M7 8V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                    <h3>No stores found</h3>
+                    <p>We couldn't find any stores matching "{{ request('search') }}"</p>
+                    <a href="{{ route('shop.stores') }}" class="empty-link">Clear search →</a>
                 </div>
-            </div>
-        @endforelse
-    </div>
+            @endforelse
+        </div>
 
-    <!-- Pagination -->
-    @if($stores->hasPages())
-        <div class="row mt-5">
-            <div class="col-12">
+        <!-- Pagination -->
+        @if($stores->hasPages())
+            <div class="pagination-wrapper">
                 {{ $stores->links() }}
             </div>
-        </div>
-    @endif
+        @endif
+    </div>
 </div>
 
 @push('styles')
 <style>
-    /* Search Card */
-    .search-card {
-        background: var(--white);
-        border-radius: 20px;
-        padding: 1.5rem;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
-        border: 1px solid var(--gray-200);
+/* ============================================
+   STORES PAGE - LIST LAYOUT (FAITH STORE STYLE)
+   Dark #1A2C3E | Gold #C6A43B
+============================================ */
+
+.stores-page {
+    background: #F5F7FA;
+    min-height: calc(100vh - 64px);
+    padding: 32px 0;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header */
+.page-header {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.page-header h1 {
+    font-size: 26px;
+    font-weight: 600;
+    color: #1A2C3E;
+    margin: 0 0 6px 0;
+}
+
+.page-header h1 span {
+    color: #C6A43B;
+}
+
+.page-header p {
+    font-size: 14px;
+    color: #6B7A8F;
+    margin: 0;
+}
+
+/* Search Section */
+.search-section {
+    margin-bottom: 28px;
+}
+
+.search-form {
+    margin-bottom: 12px;
+}
+
+.search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    position: absolute;
+    left: 14px;
+    color: #9CA3AF;
+    pointer-events: none;
+}
+
+.search-input {
+    width: 100%;
+    padding: 11px 100px 11px 42px;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    font-size: 13px;
+    background: white;
+    transition: all 0.2s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #C6A43B;
+    box-shadow: 0 0 0 2px rgba(198,164,59,0.08);
+}
+
+.search-btn {
+    position: absolute;
+    right: 4px;
+    padding: 7px 20px;
+    background: #C6A43B;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.search-btn:hover {
+    background: #AD8E32;
+}
+
+.active-filter {
+    margin-top: 12px;
+}
+
+.filter-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: white;
+    border: 1px solid #E2E8F0;
+    border-radius: 20px;
+    font-size: 12px;
+    color: #5A6E85;
+}
+
+.remove-filter {
+    color: #9CA3AF;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.remove-filter:hover {
+    color: #EF4444;
+}
+
+/* Stores List */
+.stores-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Store Item - Faith Store Style */
+.store-item {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    gap: 20px;
+    border: 1px solid #E2E8F0;
+    transition: all 0.2s;
+}
+
+.store-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border-color: #CBD5E1;
+}
+
+/* Store Icon */
+.store-icon {
+    flex-shrink: 0;
+}
+
+.store-icon img {
+    width: 64px;
+    height: 64px;
+    border-radius: 12px;
+    object-fit: cover;
+}
+
+.icon-placeholder {
+    width: 64px;
+    height: 64px;
+    background: #F0F2F5;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-placeholder svg {
+    stroke: #8A99B0;
+}
+
+/* Store Details */
+.store-details {
+    flex: 1;
+}
+
+.store-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.store-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1A2C3E;
+    margin: 0;
+}
+
+.store-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-view, .btn-enquiry {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn-view {
+    background: #1A2C3E;
+    color: white;
+}
+
+.btn-view:hover {
+    background: #2A3E52;
+}
+
+.btn-enquiry {
+    background: transparent;
+    border: 1px solid #C6A43B;
+    color: #C6A43B;
+}
+
+.btn-enquiry:hover {
+    background: rgba(198,164,59,0.1);
+}
+
+/* Store Address */
+.store-address {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.store-address svg {
+    stroke: #C6A43B;
+    flex-shrink: 0;
+}
+
+.store-address span {
+    font-size: 12px;
+    color: #6B7A8F;
+    line-height: 1.4;
+}
+
+/* Store Stats */
+.store-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.stat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.stat-badge.verified {
+    background: rgba(16,185,129,0.1);
+    color: #059669;
+}
+
+.stat-badge.verified svg {
+    stroke: #059669;
+}
+
+.stat-badge.years {
+    background: rgba(198,164,59,0.1);
+    color: #C6A43B;
+}
+
+.stat-badge.years svg {
+    stroke: #C6A43B;
+}
+
+/* Store Contact */
+.store-contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.contact-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #5A6E85;
+}
+
+.contact-item svg {
+    stroke: #8A99B0;
+}
+
+/* Store Links */
+.store-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.link-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #C6A43B;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.link-item:hover {
+    color: #AD8E32;
+    text-decoration: underline;
+}
+
+.link-item svg {
+    stroke: currentColor;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #E2E8F0;
+}
+
+.empty-state svg {
+    margin-bottom: 16px;
+}
+
+.empty-state h3 {
+    font-size: 16px;
+    font-weight: 500;
+    color: #1A2C3E;
+    margin: 0 0 8px 0;
+}
+
+.empty-state p {
+    font-size: 13px;
+    color: #8A99B0;
+    margin-bottom: 16px;
+}
+
+.empty-link {
+    display: inline-block;
+    color: #C6A43B;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.empty-link:hover {
+    text-decoration: underline;
+}
+
+/* Pagination */
+.pagination-wrapper {
+    margin-top: 32px;
+    display: flex;
+    justify-content: center;
+}
+
+.pagination-wrapper .pagination {
+    display: flex;
+    gap: 6px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.pagination-wrapper .page-item .page-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 10px;
+    background: white;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    color: #5A6E85;
+    text-decoration: none;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+.pagination-wrapper .page-item.active .page-link {
+    background: #C6A43B;
+    border-color: #C6A43B;
+    color: white;
+}
+
+.pagination-wrapper .page-item .page-link:hover {
+    border-color: #C6A43B;
+    color: #C6A43B;
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+    .store-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .store-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .store-actions {
+        width: 100%;
+    }
+    
+    .btn-view, .btn-enquiry {
+        flex: 1;
+        text-align: center;
+    }
+}
+
+@media (max-width: 600px) {
+    .stores-page {
+        padding: 20px 0;
+    }
+    
+    .page-header h1 {
+        font-size: 24px;
     }
     
     .search-wrapper {
-        position: relative;
-        display: flex;
-        align-items: center;
+        flex-direction: column;
     }
     
     .search-icon {
-        position: absolute;
-        left: 16px;
-        color: var(--gray-500);
-        font-size: 1rem;
-        pointer-events: none;
-        z-index: 1;
+        display: none;
     }
     
     .search-input {
-        width: 100%;
-        padding: 14px 120px 14px 44px;
-        border: 1px solid var(--gray-300);
-        border-radius: 14px;
-        font-size: 0.95rem;
-        transition: all 0.2s;
-        background: var(--white);
-    }
-    
-    .search-input:focus {
-        outline: none;
-        border-color: var(--brand-gold);
-        box-shadow: 0 0 0 3px rgba(201, 165, 59, 0.1);
+        padding: 10px 14px;
+        margin-bottom: 8px;
     }
     
     .search-btn {
-        position: absolute;
-        right: 6px;
-        padding: 8px 24px;
-        background: var(--brand-gold);
-        color: var(--brand-dark);
-        border: none;
-        border-radius: 10px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        transition: all 0.2s;
-        cursor: pointer;
-    }
-    
-    .search-btn:hover {
-        background: var(--brand-gold-dark);
-        transform: translateY(-1px);
-    }
-    
-    .active-filter {
-        margin-top: 1rem;
-        padding-top: 1rem;
-        border-top: 1px solid var(--gray-200);
-    }
-    
-    .filter-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 6px 12px;
-        background: var(--gray-100);
-        border-radius: 20px;
-        font-size: 0.85rem;
-        color: var(--gray-700);
-    }
-    
-    .clear-filter {
-        color: var(--gray-500);
-        text-decoration: none;
-        font-weight: bold;
-        margin-left: 4px;
-    }
-    
-    .clear-filter:hover {
-        color: var(--danger);
-    }
-    
-    /* Store Cards */
-    .store-card {
-        height: 100%;
-        background: var(--white);
-        border-radius: 20px;
-        overflow: hidden;
-        transition: all 0.3s ease;
-        border: 1px solid var(--gray-200);
-    }
-    
-    .store-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 20px 35px -12px rgba(0,0,0,0.12);
-        border-color: var(--brand-gold);
-    }
-    
-    .store-card-inner {
-        padding: 1.5rem;
-        text-align: center;
-    }
-    
-    .store-logo {
-        width: 100px;
-        height: 100px;
-        margin: 0 auto 1.25rem;
-    }
-    
-    .store-logo img {
+        position: static;
         width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid var(--brand-gold);
-        transition: transform 0.3s ease;
-    }
-    
-    .store-card:hover .store-logo img {
-        transform: scale(1.05);
-    }
-    
-    .store-logo-placeholder {
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(135deg, var(--gray-100) 0%, var(--gray-200) 100%);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 3px solid var(--brand-gold);
-    }
-    
-    .store-logo-placeholder i {
-        font-size: 2.5rem;
-        color: var(--brand-gold);
-    }
-    
-    .store-name {
-        font-size: 1.2rem;
-        font-weight: 700;
-        color: var(--brand-dark);
-        margin-bottom: 0.5rem;
-        line-height: 1.4;
-    }
-    
-    .store-description {
-        font-size: 0.85rem;
-        color: var(--gray-600);
-        line-height: 1.5;
-        margin-bottom: 1rem;
     }
     
     .store-stats {
-        display: flex;
-        justify-content: center;
-        gap: 1.5rem;
-        margin-bottom: 1.5rem;
-        padding: 0.75rem 0;
-        border-top: 1px solid var(--gray-200);
-        border-bottom: 1px solid var(--gray-200);
+        flex-direction: column;
+        gap: 6px;
     }
     
-    .stat-item {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.8rem;
-        color: var(--gray-600);
+    .store-contact {
+        flex-direction: column;
+        gap: 8px;
     }
     
-    .stat-item i {
-        color: var(--brand-gold);
-        font-size: 0.9rem;
+    .store-links {
+        flex-wrap: wrap;
     }
-    
-    .btn-visit-store {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        padding: 10px 20px;
-        background: var(--brand-gold);
-        color: var(--brand-dark);
-        border: none;
-        border-radius: 12px;
-        font-weight: 600;
-        font-size: 0.9rem;
-        text-decoration: none;
-        transition: all 0.2s;
-    }
-    
-    .btn-visit-store:hover {
-        background: var(--brand-gold-dark);
-        transform: translateY(-2px);
-        color: var(--brand-dark);
-    }
-    
-    /* Empty State */
-    .empty-state {
-        text-align: center;
-        padding: 4rem 2rem;
-        background: var(--white);
-        border-radius: 24px;
-        border: 1px solid var(--gray-200);
-    }
-    
-    .empty-state-icon {
-        width: 80px;
-        height: 80px;
-        background: rgba(201, 165, 59, 0.1);
-        border-radius: 50%;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 1.5rem;
-    }
-    
-    .empty-state-icon i {
-        font-size: 2.5rem;
-        color: var(--brand-gold);
-    }
-    
-    .empty-state h3 {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: var(--brand-dark);
-        margin-bottom: 0.5rem;
-    }
-    
-    .empty-state p {
-        color: var(--gray-600);
-        margin-bottom: 1.5rem;
-    }
-    
-    .btn-clear-search {
-        display: inline-flex;
-        align-items: center;
-        padding: 10px 24px;
-        background: transparent;
-        border: 1px solid var(--brand-gold);
-        color: var(--brand-gold);
-        border-radius: 10px;
-        text-decoration: none;
-        font-weight: 500;
-        transition: all 0.2s;
-    }
-    
-    .btn-clear-search:hover {
-        background: var(--brand-gold);
-        color: var(--brand-dark);
-    }
-    
-    /* Responsive */
-    @media (max-width: 768px) {
-        .search-wrapper {
-            flex-direction: column;
-            gap: 12px;
-        }
-        
-        .search-icon {
-            display: none;
-        }
-        
-        .search-input {
-            padding: 12px 16px;
-        }
-        
-        .search-btn {
-            position: static;
-            width: 100%;
-        }
-        
-        .store-stats {
-            flex-direction: column;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        
-        .store-name {
-            font-size: 1.1rem;
-        }
-    }
+}
 </style>
 @endpush
 @endsection

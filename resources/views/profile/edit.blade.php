@@ -23,9 +23,9 @@
                                  class="rounded-circle"
                                  style="width: 120px; height: 120px; object-fit: cover; border: 3px solid var(--brand-gold);">
                             
-                            <form action="{{ route('profile.upload-image') }}" method="POST" enctype="multipart/form-data" id="image-upload-form" class="d-none">
+                            <form action="{{ route('profile.upload-image') }}" method="POST" enctype="multipart/form-data" id="image-upload-form">
                                 @csrf
-                                <input type="file" name="profile_image" id="profile-image-input" accept="image/*">
+                                <input type="file" name="profile_image" id="profile-image-input" accept="image/jpeg,image/png,image/jpg" style="display: none;">
                             </form>
                             
                             <button type="button" class="btn btn-sm position-absolute bottom-0 end-0 rounded-circle p-2" 
@@ -35,22 +35,24 @@
                             </button>
                         </div>
                         <small class="text-muted d-block mt-2">Click camera to change profile picture</small>
+                        
+                        <!-- Single success message only -->
+                        @if(session('success'))
+                            <div class="text-success mt-3" style="font-size: 14px; font-weight: 500;">
+                                <i class="fas fa-check-circle"></i> {{ session('success') }}
+                            </div>
+                        @endif
                     </div>
                     
-                    <!-- Display Success/Error Messages -->
-                    @if(session('success'))
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    @endif
-                    
+                    <!-- Display Error Messages Only -->
                     @if($errors->any())
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             <i class="fas fa-exclamation-circle me-2"></i>
-                            @foreach($errors->all() as $error)
-                                <div>{{ $error }}</div>
-                            @endforeach
+                            <div>
+                                @foreach($errors->all() as $error)
+                                    <div>{{ $error }}</div>
+                                @endforeach
+                            </div>
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                     @endif
@@ -84,7 +86,7 @@
                             <div class="col-md-6">
                                 <label for="email" class="form-label fw-semibold">Email Address</label>
                                 <input type="email" class="form-control" value="{{ Auth::user()->email }}" readonly disabled>
-                                <small class="text-muted">Email cannot be changed. Contact support if you need to update your email.</small>
+                                <small class="text-muted d-block mt-1">Email cannot be changed</small>
                             </div>
                         </div>
                         
@@ -206,11 +208,29 @@
 <script>
 document.getElementById('profile-image-input').addEventListener('change', function(e) {
     if (this.files && this.files[0]) {
+        // Validate file size (max 2MB)
+        if (this.files[0].size > 2 * 1024 * 1024) {
+            alert('File is too large! Maximum size is 2MB.');
+            this.value = '';
+            return;
+        }
+        
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+        if (!allowedTypes.includes(this.files[0].type)) {
+            alert('Only JPG, JPEG, and PNG files are allowed!');
+            this.value = '';
+            return;
+        }
+        
+        // Preview image before upload
         var reader = new FileReader();
         reader.onload = function(e) {
             document.getElementById('profile-preview').src = e.target.result;
         }
         reader.readAsDataURL(this.files[0]);
+        
+        // Submit the form
         document.getElementById('image-upload-form').submit();
     }
 });
@@ -228,6 +248,7 @@ document.getElementById('profile-image-input').addEventListener('change', functi
     .btn-primary-custom:hover {
         background: var(--brand-gold-dark);
         transform: translateY(-1px);
+        color: var(--brand-dark);
     }
     .form-control, .form-select {
         border: 1px solid var(--gray-300);
@@ -237,16 +258,16 @@ document.getElementById('profile-image-input').addEventListener('change', functi
     .form-control:focus, .form-select:focus {
         border-color: var(--brand-gold);
         box-shadow: 0 0 0 3px rgba(201,165,59,0.1);
-    }
-    .alert-success {
-        background: #ecfdf5;
-        color: #059669;
-        border-left: 4px solid #059669;
+        outline: none;
     }
     .alert-danger {
         background: #fef2f2;
         color: #dc2626;
         border-left: 4px solid #dc2626;
+        border-radius: 10px;
+    }
+    .text-success {
+        color: #059669 !important;
     }
 </style>
 @endpush

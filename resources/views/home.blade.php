@@ -11,6 +11,7 @@
 <style>
 /* ============================================
    ALIBABA-STYLE DESIGN - PRESERVING ALL FUNCTIONALITY
+   ENHANCED DECORATIONS ADDED + DROPDOWN MENUS
    ============================================ */
 * {
   margin: 0;
@@ -25,6 +26,33 @@ body {
   line-height: 1.5;
 }
 
+/* ===== BACKGROUND IMAGE ===== */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('https://images.unsplash.com/photo-1541888946425-d81bb19240f5?q=80&w=2070&auto=format');
+  background-size: cover;
+  background-position: center 30%;
+  background-repeat: no-repeat;
+  filter: brightness(0.35) contrast(1.05);
+  z-index: -2;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: -1;
+}
+
 .container {
   max-width: 1280px;
   margin: 0 auto;
@@ -33,11 +61,27 @@ body {
 
 /* Top Bar - Alibaba Trust Bar */
 .top-bar {
-  background: #f5f7fa;
+  background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
   border-bottom: 1px solid #e4e7ed;
   font-size: 12px;
   padding: 8px 0;
   color: #6c757d;
+  position: relative;
+  overflow: hidden;
+}
+.top-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(200,145,40,0.05), transparent);
+  animation: shimmer 8s infinite;
+}
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
 }
 .top-bar .container {
   display: flex;
@@ -48,18 +92,38 @@ body {
   color: #6c757d;
   margin-left: 24px;
   text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
 }
-.top-links a:hover { color: gold; }
-.top-links a.cta-link { color: gold; font-weight: 600; }
+.top-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #C89128;
+  transition: width 0.3s ease;
+}
+.top-links a:hover::after {
+  width: 100%;
+}
+.top-links a:hover { color: #C89128; transform: translateY(-1px); }
+.top-links a.cta-link { color: #C89128; font-weight: 600; }
 
-/* Header - Sticky */
+/* Header - Sticky with glass effect */
 .main-header {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
   position: sticky;
   top: 0;
   z-index: 100;
   border-bottom: 1px solid #eef2f6;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  transition: all 0.3s ease;
+}
+.main-header.scrolled {
+  box-shadow: 0 8px 30px rgba(0,0,0,0.08);
 }
 .header-inner {
   display: flex;
@@ -68,29 +132,42 @@ body {
   height: 76px;
 }
 
-/* Logo */
+/* Logo with hover animation */
 .logo {
   display: flex;
   align-items: center;
   gap: 12px;
   text-decoration: none;
+  position: relative;
 }
 .logo-icon {
   width: 42px;
   height: 42px;
-  background: #1e293b;
-  border-radius: 8px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.3s ease;
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+.logo:hover .logo-icon {
+  transform: scale(1.05) rotate(5deg);
 }
 .logo-text h2 {
   font-size: 24px;
   font-weight: 800;
   letter-spacing: -0.5px;
-  color: #1e293b;
+  background: linear-gradient(135deg, #1e293b 0%, #2d3a4f 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
-.logo-text span { color: gold; }
+.logo-text span { color: #C89128; -webkit-text-fill-color: #C89128; }
 .logo-text p {
   font-size: 9px;
   color: #7e8c9a;
@@ -98,7 +175,7 @@ body {
   margin-top: 2px;
 }
 
-/* Search Box */
+/* Search Box with pulse effect on focus */
 .search-wrapper {
   flex: 1;
   max-width: 520px;
@@ -106,10 +183,16 @@ body {
 }
 .search-box {
   display: flex;
-  border: 2px solid gold;
-  border-radius: 8px;
+  border: 2px solid #C89128;
+  border-radius: 12px;
   overflow: hidden;
   background: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(200,145,40,0.1);
+}
+.search-box:focus-within {
+  box-shadow: 0 4px 20px rgba(200,145,40,0.2);
+  transform: translateY(-1px);
 }
 .search-box input {
   flex: 1;
@@ -119,15 +202,33 @@ body {
   outline: none;
 }
 .search-box button {
-  background: gold;
+  background: linear-gradient(135deg, #C89128 0%, #E0A83C 100%);
   border: none;
   padding: 0 28px;
   color: white;
   font-weight: 600;
   cursor: pointer;
-  transition: 0.2s;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
-.search-box button:hover { background: gold; }
+.search-box button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255,255,255,0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+.search-box button:hover::before {
+  width: 300px;
+  height: 300px;
+}
+.search-box button:hover { background: linear-gradient(135deg, #E0A83C 0%, #C89128 100%); transform: scale(1.02); }
 
 /* Header Actions */
 .header-actions {
@@ -139,38 +240,176 @@ body {
   font-size: 12px;
   color: #4b5563;
   text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
 }
 .action-item i {
   font-size: 20px;
   display: block;
   margin-bottom: 4px;
+  transition: transform 0.3s ease;
 }
-.action-item:hover { color: gold; }
+.action-item:hover { color: #C89128; }
+.action-item:hover i {
+  transform: translateY(-2px);
+}
 
-/* Navigation Tabs */
+/* ===== DROPDOWN MENU STYLES - LIGHT THEME ===== */
 .nav-cats {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.95);
   border-bottom: 1px solid #eef2f6;
+  position: relative;
+  z-index: 99;
 }
 .cat-links {
   display: flex;
-  gap: 32px;
+  gap: 28px;
   padding: 12px 0;
   font-size: 14px;
   font-weight: 500;
   flex-wrap: wrap;
 }
-.cat-links a {
+
+/* Dropdown container */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-toggle {
   text-decoration: none;
   color: #374151;
+  transition: all 0.3s ease;
+  position: relative;
+  cursor: pointer;
+  padding: 8px 0;
+  display: inline-block;
 }
-.cat-links a:hover, .cat-links a.active { color: gold; }
+
+.dropdown-toggle::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #C89128, #E0A83C);
+  transition: width 0.3s ease;
+}
+
+.dropdown-toggle:hover::after,
+.dropdown-toggle.active::after {
+  width: 100%;
+}
+
+.dropdown-toggle:hover, 
+.dropdown-toggle.active { 
+  color: #C89128; 
+}
+
+/* Dropdown arrow icon */
+.dropdown-toggle i.fa-chevron-down {
+  font-size: 10px;
+  margin-left: 4px;
+  transition: transform 0.3s ease;
+}
+
+.dropdown:hover .dropdown-toggle i.fa-chevron-down {
+  transform: rotate(180deg);
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  min-width: 200px;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 1000;
+  border: 1px solid #eef2f6;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.dropdown:hover .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-menu a {
+  display: block;
+  padding: 12px 20px;
+  text-decoration: none;
+  color: #374151;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.dropdown-menu a:last-child {
+  border-bottom: none;
+}
+
+.dropdown-menu a:hover {
+  background: linear-gradient(90deg, #fefaf5, #fff);
+  color: #C89128;
+  padding-left: 26px;
+}
+
+/* Right-aligned dropdown for some items */
+.dropdown-menu-right {
+  left: auto;
+  right: 0;
+}
+
+/* Mobile dropdown handling */
+@media (max-width: 768px) {
+  .cat-links {
+    gap: 16px;
+  }
+  .dropdown-menu {
+    position: static;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    box-shadow: none;
+    border: none;
+    background: transparent;
+    margin-top: 0;
+    display: none;
+  }
+  .dropdown:hover .dropdown-menu {
+    display: block;
+  }
+  .dropdown-toggle::after {
+    display: none;
+  }
+}
 
 /* Hero Section - Alibaba Style */
 .hero-section {
-  background: linear-gradient(135deg, #fefaf5 0%, #ffffff 100%);
+  background: linear-gradient(135deg, #fefaf5 0%, #ffffff 50%, #f8fafc 100%);
   padding: 40px 0;
   border-bottom: 1px solid #f0f2f5;
+  position: relative;
+  overflow: hidden;
+}
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 80%;
+  height: 150%;
+  background: radial-gradient(circle, rgba(200,145,40,0.03) 0%, transparent 70%);
+  pointer-events: none;
 }
 .hero-grid {
   display: grid;
@@ -183,9 +422,12 @@ body {
   font-weight: 800;
   line-height: 1.2;
   margin-bottom: 16px;
-  color: #1e293b;
+  background: linear-gradient(135deg, #1e293b 0%, #C89128 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
-.hero-left h1 span { color: gold; }
+.hero-left h1 span { color: #C89128; -webkit-text-fill-color: #C89128; }
 .hero-left p {
   color: #5a6874;
   margin-bottom: 24px;
@@ -196,8 +438,15 @@ body {
   gap: 32px;
   margin: 24px 0;
 }
-.stat { text-align: left; }
-.stat .number { font-size: 28px; font-weight: 800; color: #1e293b; }
+.stat { text-align: left; position: relative; }
+.stat .number { 
+  font-size: 28px; 
+  font-weight: 800; 
+  background: linear-gradient(135deg, #1e293b 0%, #C89128 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
 .stat .label { font-size: 12px; color: #7e8c9a; }
 .hero-search-form {
   display: flex;
@@ -212,10 +461,14 @@ body {
   gap: 10px;
   background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 12px 16px;
+  transition: all 0.3s ease;
 }
-.hero-search-input:focus-within { border-color: gold; }
+.hero-search-input:focus-within { 
+  border-color: #C89128;
+  box-shadow: 0 0 0 3px rgba(200,145,40,0.1);
+}
 .hero-search-input input {
   border: none;
   background: transparent;
@@ -236,14 +489,35 @@ body {
   font-size: 12px;
   text-decoration: none;
   color: #4b5563;
+  transition: all 0.3s ease;
 }
-.hero-tags a:hover { background: gold; color: white; }
+.hero-tags a:hover { 
+  background: linear-gradient(135deg, #C89128, #E0A83C);
+  color: white;
+  transform: translateY(-2px);
+}
 
 .hero-right {
   background: linear-gradient(135deg, #1e2a3a 0%, #0f172a 100%);
   border-radius: 20px;
   padding: 32px;
   color: white;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+.hero-right:hover {
+  transform: translateY(-5px);
+}
+.hero-right::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -20%;
+  width: 140%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(200,145,40,0.1) 0%, transparent 70%);
+  pointer-events: none;
 }
 .hero-stats {
   display: flex;
@@ -251,7 +525,14 @@ body {
   margin-bottom: 24px;
 }
 .hero-stats .stat-item { text-align: center; }
-.hero-stats .stat-val { font-size: 32px; font-weight: 800; color: gold; }
+.hero-stats .stat-val { 
+  font-size: 32px; 
+  font-weight: 800; 
+  background: linear-gradient(135deg, #C89128 0%, #E0A83C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
 .hero-testimonial {
   border-top: 1px solid rgba(255,255,255,0.1);
   padding-top: 20px;
@@ -272,11 +553,16 @@ body {
   width: 40px;
   height: 40px;
   border-radius: 50%;
+  border: 2px solid #C89128;
+  transition: transform 0.3s ease;
+}
+.testi-author img:hover {
+  transform: scale(1.05);
 }
 
 /* Trust Bar */
 .trust-bar {
-  background: #f8fafc;
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
   padding: 16px 0;
   border-bottom: 1px solid #eef2f6;
 }
@@ -292,11 +578,31 @@ body {
   gap: 8px;
   font-size: 12px;
   color: #5a6874;
+  transition: all 0.3s ease;
+  cursor: pointer;
 }
-.trust-list svg { width: 16px; stroke: gold; }
+.trust-list li:hover {
+  transform: translateX(5px);
+  color: #C89128;
+}
+.trust-list svg { width: 16px; stroke: #C89128; transition: transform 0.3s ease; }
+.trust-list li:hover svg { transform: scale(1.2); }
 
-/* Section Styles */
-.section { padding: 56px 0; border-bottom: 1px solid #edf2f7; }
+/* Section Styles with decorative lines */
+.section { 
+  padding: 56px 0; 
+  border-bottom: 1px solid #edf2f7;
+  position: relative;
+}
+.section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #C89128, transparent);
+}
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -306,13 +612,30 @@ body {
 .section-header h2 {
   font-size: 24px;
   font-weight: 700;
+  position: relative;
+  display: inline-block;
 }
-.section-header h2 em { color: gold; font-style: normal; }
+.section-header h2::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, #C89128, #E0A83C);
+  border-radius: 3px;
+}
+.section-header h2 em { color: #C89128; font-style: normal; }
 .section-header a {
-  color: gold;
+  color: #C89128;
   font-size: 13px;
   text-decoration: none;
   font-weight: 500;
+  transition: all 0.3s ease;
+}
+.section-header a:hover {
+  transform: translateX(5px);
+  color: #E0A83C;
 }
 
 /* Category Grid */
@@ -324,39 +647,85 @@ body {
 .cat-card {
   background: white;
   border: 1px solid #eef2f6;
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 24px 12px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   text-decoration: none;
   color: inherit;
+  position: relative;
+  overflow: hidden;
+}
+.cat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(200,145,40,0.05), transparent);
+  transition: left 0.6s;
+}
+.cat-card:hover::before {
+  left: 100%;
 }
 .cat-card:hover {
-  border-color: gold;
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  border-color: #C89128;
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px rgba(200,145,40,0.15);
 }
-.cat-card i { font-size: 36px; color: gold; margin-bottom: 12px; display: block; }
+.cat-card i { 
+  font-size: 36px; 
+  background: linear-gradient(135deg, #C89128 0%, #E0A83C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 12px; 
+  display: block;
+  transition: transform 0.3s ease;
+}
+.cat-card:hover i {
+  transform: scale(1.1);
+}
 .cat-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
 .cat-card p { font-size: 11px; color: #7e8c9a; }
 
-/* Split Section */
+/* Split Section with decorative borders */
 .split-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  position: relative;
+}
+.split-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(180deg, transparent, #C89128, transparent);
 }
 .split-panel {
   padding: 64px 48px;
+  transition: transform 0.3s ease;
 }
-.light-panel { background: #fefcf9; }
-.dark-panel { background: #1e293b; color: white; }
+.split-panel:hover {
+  transform: scale(1.02);
+}
+.light-panel { 
+  background: linear-gradient(135deg, #fefcf9 0%, #ffffff 100%);
+}
+.dark-panel { 
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  color: white; 
+}
 .split-panel h3 {
   font-size: 28px;
   font-weight: 700;
   margin-bottom: 16px;
 }
-.split-panel h3 em { color: gold; font-style: normal; }
+.split-panel h3 em { color: #C89128; font-style: normal; }
 .split-panel p { margin-bottom: 24px; line-height: 1.6; color: #5a6874; }
 .dark-panel p { color: #94a3b8; }
 .checklist {
@@ -369,8 +738,12 @@ body {
   gap: 10px;
   margin-bottom: 12px;
   font-size: 14px;
+  transition: transform 0.3s ease;
 }
-.check-icon svg { width: 16px; stroke: gold; stroke-width: 2.5; }
+.checklist li:hover {
+  transform: translateX(5px);
+}
+.check-icon svg { width: 16px; stroke: #C89128; stroke-width: 2.5; }
 
 /* Pros Grid */
 .pros-grid {
@@ -380,14 +753,31 @@ body {
 }
 .pro-card {
   border: 1px solid #eef2f6;
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 20px;
   background: white;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.pro-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, #C89128, #E0A83C);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+.pro-card:hover::before {
+  transform: scaleX(1);
 }
 .pro-card:hover {
-  border-color: gold;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  border-color: #C89128;
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(200,145,40,0.1);
 }
 .pro-header {
   display: flex;
@@ -400,10 +790,15 @@ body {
   height: 56px;
   border-radius: 50%;
   object-fit: cover;
+  border: 2px solid #C89128;
+  transition: transform 0.3s ease;
+}
+.pro-card:hover .pro-avatar {
+  transform: scale(1.05);
 }
 .pro-info h4 { font-size: 16px; font-weight: 700; }
-.pro-title { font-size: 12px; color: gold; font-weight: 500; margin: 2px 0; }
-.pro-rating { color: gold; font-size: 12px; }
+.pro-title { font-size: 12px; color: #C89128; font-weight: 500; margin: 2px 0; }
+.pro-rating { color: #C89128; font-size: 12px; }
 .pro-details {
   font-size: 12px;
   color: #5a6874;
@@ -414,20 +809,28 @@ body {
 }
 .btn-contact {
   width: 100%;
-  background: #f8fafc;
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
   border: 1px solid #e2e8f0;
-  padding: 8px;
-  border-radius: 6px;
+  padding: 10px;
+  border-radius: 10px;
   font-size: 12px;
   font-weight: 600;
   text-align: center;
   display: block;
   text-decoration: none;
   color: #1f2937;
+  transition: all 0.3s ease;
+  cursor: pointer;
 }
-.btn-contact:hover { background: gold; color: white; border-color: gold; }
+.btn-contact:hover { 
+  background: linear-gradient(135deg, #C89128, #E0A83C);
+  color: white; 
+  border-color: #C89128;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(200,145,40,0.3);
+}
 
-/* Steps */
+/* Steps with animated numbers */
 .steps-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -436,12 +839,16 @@ body {
 .step {
   text-align: center;
   padding: 24px;
+  transition: all 0.3s ease;
+}
+.step:hover {
+  transform: translateY(-5px);
 }
 .step-num {
   width: 48px;
   height: 48px;
-  background: #fff3e8;
-  color: gold;
+  background: linear-gradient(135deg, #fff3e8 0%, #fff9f0 100%);
+  color: #C89128;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
@@ -449,21 +856,32 @@ body {
   font-weight: 800;
   font-size: 20px;
   margin-bottom: 16px;
+  transition: all 0.3s ease;
+}
+.step:hover .step-num {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(200,145,40,0.2);
 }
 .step h4 { font-size: 18px; margin-bottom: 8px; }
 .step p { font-size: 13px; color: #5a6874; }
 
-/* Testimonials */
+/* Testimonials with glowing border */
 .testi-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 24px;
 }
 .testi-card {
-  background: #fefcf9;
+  background: linear-gradient(135deg, #fefcf9 0%, #ffffff 100%);
   padding: 24px;
-  border-radius: 12px;
+  border-radius: 20px;
   border: 1px solid #f0f2f5;
+  transition: all 0.3s ease;
+}
+.testi-card:hover {
+  border-color: #C89128;
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(200,145,40,0.1);
 }
 .testi-text {
   font-size: 14px;
@@ -472,11 +890,27 @@ body {
   line-height: 1.6;
 }
 
-/* CTA Banner */
+/* CTA Banner with animated gradient */
 .cta-banner {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
   padding: 64px 0;
   text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.cta-banner::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(200,145,40,0.05) 0%, transparent 70%);
+  animation: rotate 20s linear infinite;
+}
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 .cta-banner h2 {
   color: white;
@@ -484,14 +918,24 @@ body {
   font-weight: 700;
   margin-bottom: 16px;
 }
-.cta-banner h2 em { color: gold; font-style: normal; }
+.cta-banner h2 em { color: #C89128; font-style: normal; }
 .cta-banner p { color: #94a3b8; margin-bottom: 32px; }
 
-/* Footer */
+/* Footer with gradient border */
 .footer {
-  background: #1e293b;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
   color: #9ca3af;
   padding: 56px 0 32px;
+  position: relative;
+}
+.footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #C89128, transparent);
 }
 .footer-grid {
   display: grid;
@@ -503,6 +947,17 @@ body {
   color: white;
   font-size: 14px;
   margin-bottom: 20px;
+  position: relative;
+  display: inline-block;
+}
+.footer-col h5::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 30px;
+  height: 2px;
+  background: #C89128;
 }
 .footer-col a {
   display: block;
@@ -510,8 +965,12 @@ body {
   text-decoration: none;
   font-size: 13px;
   margin-bottom: 10px;
+  transition: all 0.3s ease;
 }
-.footer-col a:hover { color: gold; }
+.footer-col a:hover { 
+  color: #C89128;
+  transform: translateX(5px);
+}
 .footer-bottom {
   border-top: 1px solid #334155;
   padding-top: 24px;
@@ -521,34 +980,50 @@ body {
   justify-content: space-between;
 }
 
-/* Modal (preserved from original) */
+/* Modal with animation */
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.7);
-  backdrop-filter: blur(4px);
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(8px);
   display: none;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 .modal__box {
   background: white;
   max-width: 500px;
   width: 90%;
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 .modal__hd {
   padding: 20px 24px;
-  border-bottom: 1px solid #eef2f6;
+  border-bottom: 2px solid #eef2f6;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: linear-gradient(135deg, #fefcf9, #ffffff);
 }
 .modal__close {
   cursor: pointer;
-  font-size: 24px;
+  font-size: 28px;
+  transition: transform 0.3s ease;
+}
+.modal__close:hover {
+  transform: rotate(90deg);
+  color: #C89128;
 }
 .modal__body { padding: 24px; }
 .modal__ft {
@@ -564,6 +1039,7 @@ body {
   .pros-grid { grid-template-columns: repeat(2,1fr); }
   .hero-grid { grid-template-columns: 1fr; }
   .split-section { grid-template-columns: 1fr; }
+  .split-section::before { display: none; }
   .steps-grid { grid-template-columns: 1fr; }
   .testi-grid { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: repeat(2,1fr); }
@@ -574,6 +1050,27 @@ body {
   .category-grid { grid-template-columns: repeat(2,1fr); }
   .pros-grid { grid-template-columns: 1fr; }
   .trust-list { justify-content: center; }
+  .hero-left h1 { font-size: 28px; }
+  .cat-links { gap: 12px; }
+  .dropdown-menu { position: static; opacity: 1; visibility: visible; transform: none; box-shadow: none; border: none; background: transparent; margin-top: 0; display: none; }
+  .dropdown:hover .dropdown-menu { display: block; }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #C89128, #E0A83C);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #E0A83C, #C89128);
 }
 </style>
 </head>
@@ -595,7 +1092,7 @@ body {
   <div class="container">
     <div class="header-inner">
       <a href="/" class="logo">
-        <div class="logo-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="gold" stroke-width="2"><path d="M4 20 L8 8 L12 14 L16 9 L20 20"/></svg></div>
+        <div class="logo-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C89128" stroke-width="2"><path d="M4 20 L8 8 L12 14 L16 9 L20 20"/></svg></div>
         <div class="logo-text"><h2>BUILD<span>Connect</span></h2><p>Construction freelancer</p></div>
       </a>
       <div class="search-wrapper">
@@ -613,15 +1110,90 @@ body {
   </div>
 </div>
 
-<!-- Navigation - PRESERVED ORIGINAL LINKS -->
+<!-- Navigation Tabs WITH DROPDOWN MENUS - All items have hover dropdowns -->
 <div class="nav-cats">
   <div class="container">
     <div class="cat-links">
-      <a href="/jobs" class="active">Find Work</a>
-      <a href="#categories">Hire Talent</a>
-      <a href="{{ route('pos.single-shop') }}">manage Single Shop</a>
-      <a href="{{ route('pos.multi-shop') }}">manage Multi Shop</a>
-      <a href="#">Why Oweru</a>
+      <!-- Find Work Dropdown -->
+      <div class="dropdown">
+        <span class="dropdown-toggle">Find Work <i class="fas fa-chevron-down"></i></span>
+        <div class="dropdown-menu">
+          <a href="/jobs">Browse Projects</a>
+          <a href="/jobs/recommended">Recommended Jobs</a>
+          <a href="/saved-jobs">Saved Jobs</a>
+          
+        </div>
+      </div>
+      <!-- Hire Talent Dropdown -->
+      <div class="dropdown">
+        <span class="dropdown-toggle">Hire Talent <i class="fas fa-chevron-down"></i></span>
+        <div class="dropdown-menu">
+          <a href="#categories">Search Professionals</a>
+          <a href="/post-project">Post a Project</a>
+          
+        </div>
+      </div>
+      <!-- manage Single Shop Dropdown -->
+      <div class="dropdown">
+        <span class="dropdown-toggle">{{ route('pos.single-shop') ? 'manage Single Shop' : 'manage Single Shop' }} <i class="fas fa-chevron-down"></i></span>
+        <div class="dropdown-menu">
+          <a href="{{ route('pos.single-shop') }}">Dashboard</a>
+          <a href="{{ route('pos.single-shop') }}/products">Products</a>
+          <a href="{{ route('pos.single-shop') }}/orders">Orders</a>
+          <a href="{{ route('pos.single-shop') }}/settings">Settings</a>
+          <a href="{{ route('pos.single-shop') }}/analytics">Analytics</a>
+        </div>
+      </div>
+      <!-- manage Multi Shop Dropdown -->
+      <div class="dropdown">
+        <span class="dropdown-toggle">{{ route('pos.multi-shop') ? 'manage Multi Shop' : 'manage Multi Shop' }} <i class="fas fa-chevron-down"></i></span>
+        <div class="dropdown-menu">
+          <a href="{{ route('pos.multi-shop') }}">All Shops</a>
+          <a href="{{ route('pos.multi-shop') }}/add">Add New Shop</a>
+          <a href="{{ route('pos.multi-shop') }}/inventory">Inventory Management</a>
+          <a href="{{ route('pos.multi-shop') }}/analytics">Multi-Shop Analytics</a>
+          <a href="{{ route('pos.multi-shop') }}/staff">Staff Management</a>
+        </div>
+      </div>
+      <!-- For Clients Dropdown -->
+      <div class="dropdown">
+        <span class="dropdown-toggle">For Clients <i class="fas fa-chevron-down"></i></span>
+        <div class="dropdown-menu">
+          <a href="/post-project">Post a Project</a>
+          <a href="#categories">Browse Professionals</a>
+          
+          <a href="/success-stories">Success Stories</a>
+          
+        </div>
+      </div>
+      <!-- For Professionals Dropdown -->
+      <div class="dropdown">
+        <span class="dropdown-toggle">For Professionals <i class="fas fa-chevron-down"></i></span>
+        <div class="dropdown-menu">
+          <a href="/register">Apply to Join</a>
+          <a href="/jobs">Find Work</a>
+          
+        </div>
+      </div>
+      <!-- Company Dropdown -->
+      <div class="dropdown">
+        <span class="dropdown-toggle">Company <i class="fas fa-chevron-down"></i></span>
+        <div class="dropdown-menu">
+          <a href="/about">About Us</a>
+          
+          <a href="/contact">Contact Us</a>
+        </div>
+      </div>
+      <!-- Why Oweru Dropdown -->
+      <div class="dropdown">
+        <span class="dropdown-toggle">Why Oweru <i class="fas fa-chevron-down"></i></span>
+        <div class="dropdown-menu">
+          <a href="/about">About Us</a>
+          <a href="/how-it-works">How It Works</a>
+          <a href="/success-stories">Success Stories</a>
+          <a href="/contact">Contact</a>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -647,7 +1219,7 @@ body {
             <i class="fas fa-map-marker-alt"></i>
             <input type="text" name="location" placeholder="Enter location">
           </div>
-          <button type="submit" class="search-box" style="border: none; background: gold; padding: 0 28px; border-radius: 8px; color: white; font-weight: 600;">Find Nearby →</button>
+          <button type="submit" class="search-box" style="border: none; background: #C89128; padding: 0 28px; border-radius: 8px; color: white; font-weight: 600;">Find Nearby →</button>
         </form>
         <div class="hero-tags">
           <span style="font-size:12px; color:#7e8c9a;">Popular:</span>
@@ -718,7 +1290,7 @@ body {
       <li><div class="check-icon"><svg width="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg></div>Guaranteed weekly payments</li>
       <li><div class="check-icon"><svg width="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg></div>Build your global portfolio</li>
     </ul>
-    <a href="/jobs" class="btn-contact" style="width: auto; display: inline-block; padding: 12px 28px; background: gold; color: white;">Browse Open Roles →</a>
+    <a href="/jobs" class="btn-contact" style="width: auto; display: inline-block; padding: 12px 28px; background: #C89128; color: white;">Browse Open Roles →</a>
   </div>
 </section>
 
@@ -765,8 +1337,8 @@ body {
     <h2>Build Africa's future, <em>starting today.</em></h2>
     <p>Join the network trusted by the continent's largest infrastructure projects and leading construction firms across 54 nations.</p>
     <div style="display: flex; gap: 16px; justify-content: center;">
-      <a href="/register" class="btn-contact" style="background: gold; color: white; width: auto; padding: 12px 32px;">Get Started Free →</a>
-      <a href="#" class="btn-contact" style="background: transparent; border: 1px solid gold; color: white; width: auto; padding: 12px 32px;">Talk to Sales</a>
+      <a href="/register" class="btn-contact" style="background: #C89128; color: white; width: auto; padding: 12px 32px;">Get Started Free →</a>
+      <a href="#" class="btn-contact" style="background: transparent; border: 1px solid #C89128; color: white; width: auto; padding: 12px 32px;">Talk to Sales</a>
     </div>
     <p style="margin-top: 24px; font-size: 12px;">Free to get started · No credit card required</p>
   </div>
@@ -778,14 +1350,14 @@ body {
     <div class="footer-grid">
       <div class="footer-col">
         <a href="/" class="logo" style="margin-bottom: 16px; display: inline-flex;">
-          <div class="logo-icon" style="background: gold;"><svg width="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 20 L8 8 L12 14 L16 9 L20 20"/></svg></div>
+          <div class="logo-icon" style="background: #C89128;"><svg width="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 20 L8 8 L12 14 L16 9 L20 20"/></svg></div>
           <div class="logo-text"><h2 style="color:white;">OWERU<span>Build</span></h2></div>
         </a>
         <p style="font-size: 13px;">Connecting Africa's best construction professionals with leading projects across the continent.</p>
       </div>
-      <div class="footer-col"><h5>For Clients</h5><a href="/jobs">Post a Project</a><a href="#categories">Browse Professionals</a><a href="#">Enterprise Solutions</a><a href="#">Pricing</a></div>
-      <div class="footer-col"><h5>For Professionals</h5><a href="/register">Apply to Join</a><a href="/jobs">Find Work</a><a href="#">Resources</a><a href="#">Community</a></div>
-      <div class="footer-col"><h5>Company</h5><a href="#">About Us</a><a href="#">Careers</a><a href="#">Blog</a><a href="#">Contact</a></div>
+      <div class="footer-col"><h5>For Clients</h5><a href="/post-project">Post a Project</a><a href="#categories">Browse Professionals</a><a href="/enterprise">Enterprise Solutions</a><a href="/pricing">Pricing</a><a href="/success-stories">Success Stories</a></div>
+      <div class="footer-col"><h5>For Professionals</h5><a href="/register">Apply to Join</a><a href="/jobs">Find Work</a><a href="/resources">Resources</a><a href="/community">Community</a><a href="/toolkit">Success Toolkit</a></div>
+      <div class="footer-col"><h5>Company</h5><a href="/about">About Us</a><a href="/careers">Careers</a><a href="/blog">Blog</a><a href="/press">Press</a><a href="/contact">Contact</a></div>
     </div>
     <div class="footer-bottom">
       <span>© 2026 Oweru BuildConnect. All rights reserved.</span>
@@ -817,7 +1389,7 @@ body {
 </div>
 
 <script>
-// PRESERVED ORIGINAL JAVASCRIPT FUNCTIONALITY
+// PRESERVED ORIGINAL JAVASCRIPT FUNCTIONALITY - COMPLETELY UNCHANGED
 const categoryData = {
   planning: { name: "Planning & Design", icon: "fas fa-drafting-compass", professionals: [] },
   construction: { name: "Construction Management", icon: "fas fa-hard-hat", professionals: [] },

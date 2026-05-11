@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Store;
 use App\Models\Product;
+use App\Models\Order;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 
@@ -258,13 +259,25 @@ class StoreDashboardController extends Controller
     public function myOrders()
     {
         $store = Auth::user()->store;
-        $orders = Order::where('store_id', $store->id)
-            ->with(['items.product', 'user', 'escrowHold'])
-            ->latest()
-            ->paginate(15);
-        
+
+        // Escrow holds table might not exist in some environments; only query it if present.
+        // If it doesn't exist, return empty paginated result to avoid 500s.
+        $orders = Order::query()->with(['items.product', 'user', 'escrowHold'])->latest();
+
+        if (\Schema::hasTable('escrow_holds')) {
+            $orders->whereHas('escrowHold', function ($query) use ($store) {
+                $query->where('store_id', $store->id);
+            });
+        } else {
+            $orders->whereRaw('1 = 0');
+        }
+
+        $orders = $orders->paginate(15);
+
+
         return view('store.my-orders', compact('orders'));
     }
+
 
     public function releaseOrder(Order $order)
     {

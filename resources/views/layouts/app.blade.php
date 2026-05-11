@@ -561,7 +561,7 @@
                             </li>
                         @elseif(Auth::user()->user_type == 'client')
                             <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('client.dashboard') ? 'active' : '' }}" href="{{ route('client.dashboard') }}">
+                                <a class="nav-link {{ request()->routeIs('client.dashboard') || request()->routeIs('client.*') ? 'active' : '' }}" href="{{ route('client.dashboard') }}">
                                     Dashboard
                                 </a>
                             </li>
@@ -759,5 +759,27 @@
     </script>
     
     @stack('scripts')
+
+    <script>
+        // Fix for in-dashboard JS swallowing global navbar clicks:
+        // If a script anywhere calls e.preventDefault(), we still want real navigation
+        // for normal <a> links in the navbar/footer.
+        document.addEventListener('click', function (e) {
+            const a = e.target && e.target.closest ? e.target.closest('a') : null;
+            if (!a) return;
+
+            // Only handle normal navigation links.
+            if (a.getAttribute('href') && !a.getAttribute('data-bs-toggle') && !a.getAttribute('onclick')) {
+                // If it's a hash link, allow default.
+                if (a.getAttribute('href').startsWith('#')) return;
+
+                // Re-trigger navigation.
+                // (Browser blocks default only; we force location change.)
+                if (e.defaultPrevented) {
+                    window.location.href = a.href;
+                }
+            }
+        }, true);
+    </script>
 </body>
 </html>

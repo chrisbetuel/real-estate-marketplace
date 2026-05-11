@@ -28,13 +28,13 @@
                                     <tbody id="cart-items">
                                         @foreach($cartItems as $item)
                                             <tr id="cart-item-{{ $item->id }}">
-                                                <td>
+<td>
                                                     <div class="d-flex align-items-center">
                                                         @php
-                                                            $images = json_decode($item->product->images, true);
+                                                            $images = $item->product->images;
                                                         @endphp
                                                         @if($images && count($images) > 0)
-                                                            <img src="{{ asset('storage/' . $images[0]) }}" 
+                                                            <img src="{{ is_string($images[0]) ? asset('storage/' . $images[0]) : ($images[0]['url'] ?? asset('images/no-image.png')) }}" 
                                                                  alt="{{ $item->product->name }}" 
                                                                  style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 15px;">
                                                         @else

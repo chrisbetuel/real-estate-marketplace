@@ -27,6 +27,9 @@ use App\Http\Controllers\DriverController;
 use App\Http\Controllers\PosController;
 
 use App\Http\Controllers\ServiceEcosystemController;
+use App\Http\Controllers\JobRecommendedController;
+use App\Http\Controllers\SavedJobsController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +39,7 @@ use App\Http\Controllers\ServiceEcosystemController;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::view('/about', 'about')->name('about');
 Route::view('/contact', 'contact')->name('contact');
+Route::view('/success-stories', 'success-stories')->name('success-stories');
 Route::view('/terms', 'terms')->name('terms');
 Route::view('/privacy', 'privacy')->name('privacy');
 Route::view('/our-story', 'our-story')->name('our-story');
@@ -70,10 +74,15 @@ Route::post('/logout', function () {
 Route::get('/search/jobs', [SearchController::class, 'jobs'])->name('search.jobs');
 Route::get('/search/professionals', [SearchController::class, 'professionals'])->name('search.professionals');
 Route::get('/search/products', [SearchController::class, 'products'])->name('search.products');
-Route::get('/search/stores', [SearchController::class, 'stores'])->name('search.stores');
+    Route::get('/search/stores', [SearchController::class, 'stores'])->name('search.stores');
 
-// Public professionals listing
-Route::get('/professionals', [ProfessionalController::class, 'index'])->name('professionals.index');
+    // Recommended jobs (public)
+    Route::get('/jobs/recommended', [JobRecommendedController::class, 'index'])->name('jobs.recommended');
+    Route::get('/saved-jobs', [SavedJobsController::class, 'index'])->name('saved-jobs');
+
+    // Public professionals listing
+    Route::get('/professionals', [ProfessionalController::class, 'index'])->name('professionals.index');
+
 
 /*
 |--------------------------------------------------------------------------
@@ -123,6 +132,14 @@ Route::prefix('pos')->name('pos.')->middleware('auth')->group(function () {
     Route::get('/receipt/{sale}', [PosController::class, 'receipt'])->name('receipt');
     Route::get('/daily-report', [PosController::class, 'dailyReport'])->name('daily-report');
     Route::get('/history', [PosController::class, 'history'])->name('history');
+
+    // Expense Routes
+    Route::get('/expenses', [PosController::class, 'expenses'])->name('expenses');
+    Route::get('/expenses/create', [PosController::class, 'createExpense'])->name('expenses.create');
+    Route::post('/expenses', [PosController::class, 'storeExpense'])->name('expenses.store');
+    Route::get('/expenses/{expense}/edit', [PosController::class, 'editExpense'])->name('expenses.edit');
+    Route::put('/expenses/{expense}', [PosController::class, 'updateExpense'])->name('expenses.update');
+    Route::delete('/expenses/{expense}', [PosController::class, 'destroyExpense'])->name('expenses.destroy');
 
     // Multi-Shop Routes
     Route::get('/shops', [PosController::class, 'shops'])->name('shops');
@@ -179,6 +196,19 @@ Route::middleware('auth')->group(function () {
     Route::prefix('client')->middleware(['client'])->name('client.')->group(function () {
         Route::get('/dashboard', [ClientDashboardController::class, 'index'])->name('dashboard');
         Route::get('/jobs', [ClientDashboardController::class, 'jobs'])->name('jobs');
+
+        // Client Job Alerts
+        Route::get('/job-alerts', [\App\Http\Controllers\JobAlertController::class, 'index'])->name('job-alerts');
+        Route::post('/job-alerts', [\App\Http\Controllers\JobAlertController::class, 'store'])->name('job-alerts.store');
+        Route::delete('/job-alerts/{jobAlert}', [\App\Http\Controllers\JobAlertController::class, 'destroy'])->name('job-alerts.destroy');
+
+        // Public alias to match the existing header link (/job-alerts)
+        // (This is under the authenticated group; it will still require auth + client middleware.)
+        Route::get('/job-alerts-alias', [\App\Http\Controllers\JobAlertController::class, 'index'])->name('public-job-alerts');
+
+
+
+
         Route::get('/jobs/{job}/bids', [ClientDashboardController::class, 'jobBids'])->name('job-bids');
         Route::get('/bids', [ClientDashboardController::class, 'bids'])->name('bids');
         Route::post('/bids/{bid}/accept', [ClientDashboardController::class, 'acceptBid'])->name('accept-bid');
@@ -293,6 +323,15 @@ Route::prefix('messages')->name('messages.')->middleware('auth')->group(function
         Route::get('/{conversation}', [MessageController::class, 'show'])->name('show');
         Route::post('/{conversation}/send', [MessageController::class, 'send'])->name('send');
         Route::get('/{conversation}/check-new', [MessageController::class, 'checkNewMessages'])->name('check-new');
+
+// Audio/Video Call Routes (WebRTC Signaling)
+        Route::post('/call/initiate', [MessageController::class, 'initiateCall'])->name('call.initiate');
+        Route::post('/call/start/{conversation}', [MessageController::class, 'startCall'])->name('call.start');
+        Route::post('/call/accept/{callSession}', [MessageController::class, 'acceptCall'])->name('call.accept');
+        Route::post('/call/reject/{callSession}', [MessageController::class, 'rejectCall'])->name('call.reject');
+        Route::post('/call/end/{callSession}', [MessageController::class, 'endCall'])->name('call.end');
+        Route::post('/call/ice', [MessageController::class, 'iceCandidate'])->name('call.ice');
+        Route::get('/call/status/{conversation}', [MessageController::class, 'callStatus'])->name('call.status');
     });
 
     /*

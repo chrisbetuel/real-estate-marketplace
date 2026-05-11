@@ -3,411 +3,493 @@
 @section('title', 'Professional Dashboard - BuildConnect')
 
 @section('content')
-<div class="dashboard-container">
-    <div class="container">
-        <!-- Welcome Section -->
-        <div class="welcome-section">
-            <div class="welcome-text">
-                <h1>Welcome back, <span>{{ Auth::user()->name }}</span></h1>
-                <p>Manage your bids, track your projects, and grow your business</p>
+<div class="dashboard-layout">
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="dashboard-sidebar">
+        <div class="sidebar-header">
+            <div class="company-badge">
+                <span class="company-initial">{{ substr(Auth::user()->first_name ?? Auth::user()->name, 0, 1) }}</span>
             </div>
-            <div class="welcome-actions">
-                <a href="{{ route('jobs.index') }}" class="btn-primary">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6"/>
-                        <polyline points="15 3 21 3 21 9"/>
-                        <line x1="10" y1="14" x2="21" y2="3"/>
-                    </svg>
-                    Browse Jobs
-                </a>
-                <a href="{{ route('professional.bids') }}" class="btn-secondary">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M20 12V8H4v12h12"/>
-                        <path d="M12 2v4"/>
-                        <path d="M8 2v4"/>
-                        <path d="M16 2v4"/>
-                        <path d="M4 12h16"/>
-                    </svg>
-                    My Bids
-                </a>
+            <div class="company-info">
+                <h4>{{ Auth::user()->first_name ?? Auth::user()->name }}</h4>
+                <p>{{ Auth::user()->company_name ?? 'Professional' }}</p>
             </div>
         </div>
-
-        <!-- Statistics Cards -->
-        <div class="stats-row">
-            <div class="stat-card">
-                <div class="stat-content">
-                    <span class="stat-label">Total Bids</span>
-                    <span class="stat-value">{{ $stats['total_bids'] }}</span>
-                </div>
-                <div class="stat-icon total">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <path d="M20 12V8H4v12h12"/>
-                        <path d="M12 2v4"/>
-                        <path d="M8 2v4"/>
-                        <path d="M16 2v4"/>
-                        <path d="M4 12h16"/>
-                    </svg>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-content">
-                    <span class="stat-label">Pending</span>
-                    <span class="stat-value">{{ $stats['pending_bids'] }}</span>
-                    @if(($stats['pending_change'] ?? 0) != 0)
-                        <span class="stat-trend {{ ($stats['pending_change'] ?? 0) > 0 ? 'up' : 'down' }}">
-                            {{ ($stats['pending_change'] ?? 0) > 0 ? '+' : '' }}{{ $stats['pending_change'] ?? 0 }}%
-                        </span>
-                    @endif
-                </div>
-                <div class="stat-icon pending">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <circle cx="12" cy="12" r="10"/>
-                        <polyline points="12 6 12 12 16 14"/>
-                    </svg>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-content">
-                    <span class="stat-label">Accepted</span>
-                    <span class="stat-value">{{ $stats['accepted_bids'] }}</span>
-                </div>
-                <div class="stat-icon accepted">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-content">
-                    <span class="stat-label">Total Earnings</span>
-                    <span class="stat-value">${{ number_format($stats['total_earnings'], 2) }}</span>
-                </div>
-                <div class="stat-icon earnings">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <line x1="12" y1="1" x2="12" y2="23"/>
-                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                    </svg>
-                </div>
-            </div>
+        
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-section="overview">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2h-5v-7H9v7H5a2 2 0 0 1-2-2z"/>
+                </svg>
+                <span>Overview</span>
+            </a>
+            <a href="#" class="nav-item" data-section="bids">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M20 12V8H4v12h12"/>
+                    <path d="M12 2v4"/>
+                    <path d="M8 2v4"/>
+                    <path d="M16 2v4"/>
+                    <path d="M4 12h16"/>
+                </svg>
+                <span>My Bids</span>
+                @if(($stats['pending_bids'] ?? 0) > 0)
+                    <span class="nav-badge warning">{{ $stats['pending_bids'] }}</span>
+                @endif
+            </a>
+            <a href="#" class="nav-item" data-section="jobs">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="2" y="7" width="20" height="14" rx="2"/>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                </svg>
+                <span>My Jobs</span>
+                @if(($stats['active_jobs'] ?? 0) > 0)
+                    <span class="nav-badge">{{ $stats['active_jobs'] }}</span>
+                @endif
+            </a>
+            <a href="#" class="nav-item" data-section="messages">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                <span>Messages</span>
+                @if(($unreadCount ?? 0) > 0)
+                    <span class="nav-badge danger">{{ $unreadCount }}</span>
+                @endif
+            </a>
+            <a href="#" class="nav-item" data-section="profile">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span>Profile</span>
+            </a>
+            <a href="#" class="nav-item" data-section="browse">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <span>Browse Jobs</span>
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <a href="{{ route('logout') }}" class="logout-btn" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                Sign Out
+            </a>
+            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">@csrf</form>
         </div>
+    </aside>
 
-        <!-- Quick Stats Row -->
-        <div class="quick-stats">
-            <div class="quick-stat-card">
-                <div class="quick-stat-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <path d="M22 12h-4l-3 9-4-18-3 9H2"/>
-                    </svg>
-                </div>
-                <div class="quick-stat-info">
-                    <span class="quick-stat-value">{{ $stats['win_rate'] ?? 0 }}%</span>
-                    <span class="quick-stat-label">Win Rate</span>
-                </div>
-            </div>
-            <div class="quick-stat-card">
-                <div class="quick-stat-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <path d="M3 3v18h18"/>
-                        <path d="M18 17V9"/>
-                        <path d="M14 17V5"/>
-                        <path d="M10 17v-4"/>
-                        <path d="M6 17v-8"/>
-                    </svg>
-                </div>
-                <div class="quick-stat-info">
-                    <span class="quick-stat-value">{{ $stats['active_projects'] ?? 0 }}</span>
-                    <span class="quick-stat-label">Active Projects</span>
-                </div>
-            </div>
-            <div class="quick-stat-card">
-                <div class="quick-stat-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <circle cx="12" cy="8" r="4"/>
-                        <path d="M5.5 20c.7-2.5 3-4 6.5-4s5.8 1.5 6.5 4"/>
-                    </svg>
-                </div>
-                <div class="quick-stat-info">
-                    <span class="quick-stat-value">{{ $stats['clients_worked'] ?? 0 }}</span>
-                    <span class="quick-stat-label">Clients</span>
-                </div>
-            </div>
-            <div class="quick-stat-card">
-                <div class="quick-stat-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                    </svg>
-                </div>
-                <div class="quick-stat-info">
-                    <span class="quick-stat-value">{{ $stats['avg_rating'] ?? '4.9' }}</span>
-                    <span class="quick-stat-label">Rating</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="content-grid">
-            <!-- Recent Bids Section -->
-            <div class="card full-width">
-                <div class="card-header">
-                    <div>
-                        <h3>Recent Bids</h3>
-                        <p>Track your latest proposals and their status</p>
+    <!-- MAIN CONTENT -->
+    <main class="dashboard-main">
+        <div class="dashboard-container">
+            
+            <!-- SECTION 1: OVERVIEW -->
+            <div id="section-overview" class="dashboard-section active">
+                <div class="dashboard-header">
+                    <div class="header-left">
+                        <h1>Professional Dashboard</h1>
+                        <p>Welcome back, {{ Auth::user()->name }}</p>
                     </div>
-                    <a href="{{ route('professional.bids') }}" class="card-link">View All →</a>
+                    <div class="header-right">
+                        <a href="{{ route('jobs.index') }}" class="btn-primary">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"/>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                            </svg>
+                            Browse Jobs
+                        </a>
+                    </div>
                 </div>
-                <div class="card-body">
-                    @if($bids->count() > 0)
-                        <div class="bids-table-responsive">
-                            <table class="bids-table">
-                                <thead>
-                                    <tr>
-                                        <th>Job Title</th>
-                                        <th>Bid Amount</th>
-                                        <th>Timeline</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($bids->take(5) as $bid)
-                                        <tr>
-                                            <td class="job-cell">
-                                                @if($bid->job?->exists)
-                                                    <a href="{{ route('jobs.show', $bid->job) }}" class="job-link">
-                                                        {{ Str::limit($bid->job->title, 35) }}
-                                                    </a>
-                                                    <span class="job-id">#{{ $bid->job->id }}</span>
-                                                @else
-                                                    <span class="job-deleted">{{ Str::limit($bid->job_title ?? 'Job deleted', 35) }}</span>
-                                                @endif
-                                            </td>
-                                            <td class="amount-cell">
-                                                <span class="bid-amount">${{ number_format($bid->bid_amount) }}</span>
-                                            </td>
-                                            <td class="timeline-cell">
-                                                <span class="timeline-badge">{{ $bid->timeline }} days</span>
-                                            </td>
-                                            <td class="status-cell">
-                                                @if($bid->status == 'pending')
-                                                    <span class="status-badge pending">
-                                                        <span class="status-dot"></span>
-                                                        Pending
-                                                    </span>
-                                                @elseif($bid->status == 'accepted')
-                                                    <span class="status-badge accepted">
-                                                        <span class="status-dot"></span>
-                                                        Accepted
-                                                    </span>
-                                                @else
-                                                    <span class="status-badge rejected">
-                                                        <span class="status-dot"></span>
-                                                        Rejected
-                                                    </span>
-                                                @endif
-                                            </td>
-                                            <td class="actions-cell">
-                                                @if($bid->status == 'pending')
-                                                    <div class="action-buttons">
-                                                        <a href="{{ route('professional.edit-bid', $bid->id) }}" class="action-btn edit" title="Edit Bid">
-                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                                <path d="M17 3l4 4-7 7H10v-4l7-7z"/>
-                                                                <path d="M4 20h16"/>
-                                                            </svg>
-                                                        </a>
-                                                        <button type="button" class="action-btn delete" data-bs-toggle="modal" data-bs-target="#withdrawModal{{ $bid->id }}" title="Withdraw Bid">
-                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                                <path d="M3 6h18"/>
-                                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                                                            </svg>
-                                                        </button>
-                                                    </div>
-                                                @elseif($bid->status == 'accepted')
-                                                    @if($bid->job?->exists)
-                                                        <a href="{{ route('jobs.show', $bid->job) }}" class="view-job-btn">
-                                                            View Job
-                                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                                <line x1="5" y1="12" x2="19" y2="12"/>
-                                                                <polyline points="12 5 19 12 12 19"/>
-                                                            </svg>
-                                                        </a>
-                                                    @else
-                                                        <span class="job-unavailable">Job unavailable</span>
-                                                    @endif
-                                                @endif
-                                            </td>
-                                        </tr>
 
-                                        <!-- Withdraw Modal -->
-                                        <div class="modal fade" id="withdrawModal{{ $bid->id }}" tabindex="-1">
-                                            <div class="modal-dialog modal-dialog-centered">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">Withdraw Bid</h5>
-                                                        <button type="button" class="modal-close" data-bs-dismiss="modal">
-                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                                <line x1="18" y1="6" x2="6" y2="18"/>
-                                                                <line x1="6" y1="6" x2="18" y2="18"/>
-                                                            </svg>
-                                                        </button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <div class="modal-warning">
-                                                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.5">
-                                                                <circle cx="12" cy="12" r="10"/>
-                                                                <line x1="12" y1="8" x2="12" y2="12"/>
-                                                                <line x1="12" y1="16" x2="12.01" y2="16"/>
-                                                            </svg>
-                                                        </div>
-                                                        <p>Are you sure you want to withdraw your bid for <strong>"{{ $bid->job?->title ?? 'this job' }}"</strong>?</p>
-                                                        <p class="modal-note">This action cannot be undone.</p>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn-cancel" data-bs-dismiss="modal">Cancel</button>
-                                                        <form action="{{ route('professional.withdraw-bid', $bid->id) }}" method="POST" class="d-inline">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn-confirm">Yes, Withdraw</button>
-                                                        </form>
-                                                    </div>
-                                                </div>
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <i class="fas fa-gavel"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value">{{ $stats['total_bids'] ?? 0 }}</div>
+                            <div class="stat-label">Total Bids</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value">{{ $stats['active_jobs'] ?? 0 }}</div>
+                            <div class="stat-label">Active Jobs</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value">{{ $stats['completed_jobs'] ?? 0 }}</div>
+                            <div class="stat-label">Completed</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon gold">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value">${{ number_format($stats['total_earned'] ?? 0, 2) }}</div>
+                            <div class="stat-label">Total Earned</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Two Columns -->
+                <div class="two-columns">
+                    <!-- Recent Bids -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Recent Bids</h3>
+                            <a href="{{ route('professional.bids') }}" class="card-link">View all →</a>
+                        </div>
+                        <div class="card-body">
+                            @if(isset($recentBids) && $recentBids->count() > 0) 
+                                @foreach($recentBids as $bid)
+                                    <div class="list-item">
+                                        <div class="list-item-status {{ $bid->status ?? 'pending' }}"></div>
+                                        <div class="list-item-content">
+                                            <div class="list-item-title">{{ Str::limit($bid->job->title ?? 'Unknown Job', 45) }}</div>
+                                            <div class="list-item-meta">
+                                                <span class="list-item-amount">${{ number_format($bid->amount ?? 0) }}</span>
+                                                <span class="list-item-date">{{ $bid->created_at->diffForHumans() }}</span>
                                             </div>
                                         </div>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                                        <div class="list-item-badge">
+                                            <span class="badge {{ $bid->status ?? 'pending' }}">
+                                                {{ ucfirst($bid->status ?? 'pending') }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @else
+                                <div class="empty-state">
+                                    <i class="fas fa-gavel"></i>
+                                    <p>No bids submitted yet</p>
+                                </div>
+                            @endif
                         </div>
-                        @if($bids->count() > 5)
-                            <div class="card-footer">
-                                <a href="{{ route('professional.bids') }}">View all {{ $bids->count() }} bids →</a>
+                    </div>
+
+                    <!-- Active Jobs -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Active Jobs</h3>
+                            <a href="{{ route('professional.jobs') }}" class="card-link">View all →</a>
+                        </div>
+                        <div class="card-body">
+                            @if(isset($activeJobs) && $activeJobs->count() > 0)
+                                @foreach($activeJobs as $job)
+                                    <div class="list-item">
+                                        <div class="list-item-icon">
+                                            <i class="fas fa-hard-hat"></i>
+                                        </div>
+                                        <div class="list-item-content">
+                                            <div class="list-item-title">
+                                                <a href="{{ route('jobs.show', $job->id) }}">{{ Str::limit($job->title ?? 'Untitled', 45) }}</a>
+                                            </div>
+                                            <div class="list-item-meta">
+                                                <span>${{ number_format($job->budget_min ?? 0) }} - ${{ number_format($job->budget_max ?? 0) }}</span>
+                                                <span>{{ $job->location ?? 'Remote' }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="list-item-badge">
+                                            <span class="badge in-progress">In Progress</span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @else
+                                <div class="empty-state">
+                                    <i class="fas fa-briefcase"></i>
+                                    <p>No active jobs</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Messages -->
+                <div class="card full-width">
+                    <div class="card-header">
+                        <h3>Recent Messages</h3>
+                        <a href="{{ route('messages.index') }}" class="card-link">View all →</a>
+                    </div>
+                    <div class="card-body">
+                        @if(isset($recentMessages) && $recentMessages->count() > 0)
+                            @foreach($recentMessages as $message)
+                                @php
+                                    $otherUser = $message->conversation->participants->firstWhere('id', '!=', Auth::id());
+                                @endphp
+                                <div class="message-item">
+                                    <div class="message-avatar">
+                                        <img src="{{ $otherUser->profile_image_url ?? 'https://ui-avatars.com/api/?background=1A2C3E&color=C6A43B&name=' . urlencode(substr($otherUser->name ?? 'U', 0, 1)) }}" alt="">
+                                    </div>
+                                    <div class="message-content">
+                                        <div class="message-sender">{{ $otherUser->name ?? 'User' }}</div>
+                                        <div class="message-preview">{{ Str::limit($message->message ?? '', 50) }}</div>
+                                    </div>
+                                    <div class="message-time">{{ $message->created_at->diffForHumans() }}</div>
+                                </div>
+                            @endforeach
+                        @else
+                            <div class="empty-state">
+                                <i class="fas fa-comment-dots"></i>
+                                <p>No messages yet</p>
                             </div>
                         @endif
-                    @else
-                        <div class="empty-state">
-                            <div class="empty-icon">
-                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1">
-                                    <path d="M20 12V8H4v12h12"/>
-                                    <path d="M12 2v4"/>
-                                    <path d="M8 2v4"/>
-                                    <path d="M16 2v4"/>
-                                    <path d="M4 12h16"/>
-                                </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: MY BIDS (FULL LIST) -->
+            <div id="section-bids" class="dashboard-section">
+                <div class="dashboard-header">
+                    <div class="header-left">
+                        <h1>My Bids</h1>
+                        <p>All bids you've submitted</p>
+                    </div>
+                    <div class="header-right">
+                        <span class="total-count">{{ $stats['total_bids'] ?? 0 }} total bids</span>
+                    </div>
+                </div>
+                <div class="card full-width">
+                    <div class="card-body">
+                        @if(isset($allBids) && $allBids->count() > 0)
+                            @foreach($allBids as $bid)
+                                <div class="list-item">
+                                    <div class="list-item-status {{ $bid->status ?? 'pending' }}"></div>
+                                    <div class="list-item-content">
+                                        <div class="list-item-title">{{ Str::limit($bid->job->title ?? 'Unknown Job', 60) }}</div>
+                                        <div class="list-item-meta">
+                                            <span class="list-item-amount">${{ number_format($bid->amount ?? 0) }}</span>
+                                            <span class="list-item-date">Submitted: {{ $bid->created_at->format('M d, Y') }}</span>
+                                        </div>
+                                        @if($bid->proposal)
+                                            <div class="list-item-proposal">{{ Str::limit($bid->proposal, 80) }}</div>
+                                        @endif
+                                    </div>
+                                    <div class="list-item-badge">
+                                        <span class="badge {{ $bid->status ?? 'pending' }}">
+                                            {{ ucfirst($bid->status ?? 'pending') }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @else
+                            <div class="empty-state">
+                                <i class="fas fa-gavel"></i>
+                                <p>You haven't submitted any bids yet</p>
+                                <a href="{{ route('jobs.index') }}" class="btn-sm">Browse Jobs →</a>
                             </div>
-                            <h4>No Bids Yet</h4>
-                            <p>You haven't submitted any bids. Start browsing jobs and submit your first bid!</p>
-                            <a href="{{ route('jobs.index') }}" class="btn-primary">Browse Jobs</a>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3: MY JOBS (FULL LIST) -->
+            <div id="section-jobs" class="dashboard-section">
+                <div class="dashboard-header">
+                    <div class="header-left">
+                        <h1>My Jobs</h1>
+                        <p>Jobs assigned to you</p>
+                    </div>
+                    <div class="header-right">
+                        <span class="total-count">{{ ($stats['active_jobs'] ?? 0) + ($stats['completed_jobs'] ?? 0) }} total jobs</span>
+                    </div>
+                </div>
+                <div class="card full-width">
+                    <div class="card-body">
+                        @if(isset($myJobs) && $myJobs->count() > 0)
+                            @foreach($myJobs as $job)
+                                <div class="list-item">
+                                    <div class="list-item-icon">
+                                        <i class="fas {{ $job->status == 'completed' ? 'fa-check-circle' : 'fa-hard-hat' }}"></i>
+                                    </div>
+                                    <div class="list-item-content">
+                                        <div class="list-item-title">
+                                            <a href="{{ route('jobs.show', $job->id) }}">{{ Str::limit($job->title ?? 'Untitled', 60) }}</a>
+                                        </div>
+                                        <div class="list-item-meta">
+                                            <span>Budget: ${{ number_format($job->budget_min ?? 0) }} - ${{ number_format($job->budget_max ?? 0) }}</span>
+                                            <span>Location: {{ $job->location ?? 'Remote' }}</span>
+                                            <span>Started: {{ $job->created_at->format('M d, Y') }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="list-item-badge">
+                                        <span class="badge {{ $job->status == 'completed' ? 'completed' : 'in-progress' }}">
+                                            {{ $job->status == 'completed' ? 'Completed' : 'In Progress' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @else
+                            <div class="empty-state">
+                                <i class="fas fa-briefcase"></i>
+                                <p>No jobs assigned to you yet</p>
+                                <a href="{{ route('jobs.index') }}" class="btn-sm">Browse Jobs →</a>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 4: MESSAGES -->
+            <div id="section-messages" class="dashboard-section">
+                <div class="dashboard-header">
+                    <div class="header-left">
+                        <h1>Messages</h1>
+                        <p>Your conversations with clients</p>
+                    </div>
+                    @if(($unreadCount ?? 0) > 0)
+                        <div class="header-right">
+                            <span class="unread-badge">{{ $unreadCount }} unread</span>
                         </div>
                     @endif
                 </div>
-            </div>
-        </div>
-
-        <!-- Recommended Jobs Section -->
-        <div class="recommended-section">
-            <div class="section-header">
-                <div>
-                    <h3>Recommended for You</h3>
-                    <p>Jobs that match your skills and expertise</p>
-                </div>
-                <a href="{{ route('jobs.index') }}" class="card-link">View All Jobs →</a>
-            </div>
-
-            @if($recommendedJobs->count() > 0)
-                <div class="recommended-grid">
-                    @foreach($recommendedJobs as $job)
-                        <div class="recommended-card">
-                            <div class="recommended-badge">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                                </svg>
-                                Featured
-                            </div>
-                            <h4 class="recommended-title">
-                                <a href="{{ route('jobs.show', $job) }}">{{ Str::limit($job->title, 50) }}</a>
-                            </h4>
-                            <div class="recommended-meta">
-                                <span class="meta-item">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M20 12V8H4v12h12"/>
-                                        <path d="M12 2v4"/>
-                                    </svg>
-                                    ${{ number_format($job->budget_min) }} - ${{ number_format($job->budget_max) }}
-                                </span>
-                                <span class="meta-item">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                                        <circle cx="12" cy="10" r="3"/>
-                                    </svg>
-                                    {{ $job->location ?? 'Remote' }}
-                                </span>
-                                <span class="meta-item">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="12" cy="12" r="10"/>
-                                        <polyline points="12 6 12 12 16 14"/>
-                                    </svg>
-                                    {{ $job->created_at->diffForHumans() }}
-                                </span>
-                            </div>
-                            <div class="recommended-footer">
-                                <div class="bids-count">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M20 12V8H4v12h12"/>
-                                        <path d="M12 2v4"/>
-                                    </svg>
-                                    {{ $job->bids_count ?? 0 }} bids
-                                </div>
-                                <a href="{{ route('jobs.show', $job) }}" class="view-btn">
-                                    View Details
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <line x1="5" y1="12" x2="19" y2="12"/>
-                                        <polyline points="12 5 19 12 12 19"/>
-                                    </svg>
+                <div class="card full-width">
+                    <div class="card-body">
+                        @if(isset($recentMessages) && $recentMessages->count() > 0)
+                            @foreach($recentMessages as $message)
+                                @php
+                                    $otherUser = $message->conversation->participants->firstWhere('id', '!=', Auth::id());
+                                    $convId = $message->conversation_id;
+                                @endphp
+                                <a href="{{ route('messages.show', $convId) }}" class="message-item-link">
+                                    <div class="message-avatar">
+                                        <img src="{{ $otherUser->profile_image_url ?? 'https://ui-avatars.com/api/?background=1A2C3E&color=C6A43B&name=' . urlencode(substr($otherUser->name ?? 'U', 0, 1)) }}" alt="">
+                                    </div>
+                                    <div class="message-content">
+                                        <div class="message-sender">{{ $otherUser->name ?? 'User' }}</div>
+                                        <div class="message-preview">{{ Str::limit($message->message ?? '', 60) }}</div>
+                                    </div>
+                                    <div class="message-time">{{ $message->created_at->diffForHumans() }}</div>
                                 </a>
+                            @endforeach
+                            <div class="view-all-messages">
+                                <a href="{{ route('messages.index') }}" class="btn-outline">View All Messages →</a>
                             </div>
-                        </div>
-                    @endforeach
+                        @else
+                            <div class="empty-state">
+                                <i class="fas fa-comment-dots"></i>
+                                <p>No messages yet</p>
+                            </div>
+                        @endif
+                    </div>
                 </div>
-            @else
-                <div class="empty-state-small">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1">
-                        <path d="M21 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6"/>
-                        <polyline points="15 3 21 3 21 9"/>
-                        <line x1="10" y1="14" x2="21" y2="3"/>
-                    </svg>
-                    <p>No recommended jobs at the moment. Check back soon!</p>
-                </div>
-            @endif
-        </div>
+            </div>
 
-        <!-- Profile Completion Tip -->
-        <div class="tips-card">
-            <div class="tips-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="M12 16v-4M12 8h.01"/>
-                </svg>
+            <!-- SECTION 5: PROFILE -->
+            <div id="section-profile" class="dashboard-section">
+                <div class="dashboard-header">
+                    <div class="header-left">
+                        <h1>My Profile</h1>
+                        <p>Manage your account information</p>
+                    </div>
+                    <div class="header-right">
+                        <a href="{{ route('profile.edit') }}" class="btn-primary">Edit Profile</a>
+                    </div>
+                </div>
+                <div class="profile-card">
+                    <div class="profile-avatar">
+                        <img src="{{ Auth::user()->profile_image_url ?? 'https://ui-avatars.com/api/?background=1A2C3E&color=fff&name=' . urlencode(Auth::user()->name) }}" alt="">
+                    </div>
+                    <div class="profile-info">
+                        <div class="info-row">
+                            <span class="info-label">Full Name</span>
+                            <span class="info-value">{{ Auth::user()->name }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Email</span>
+                            <span class="info-value">{{ Auth::user()->email }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Phone</span>
+                            <span class="info-value">{{ Auth::user()->phone ?? 'Not provided' }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Address</span>
+                            <span class="info-value">{{ Auth::user()->address ?? 'Not provided' }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Member Since</span>
+                            <span class="info-value">{{ Auth::user()->created_at->format('F j, Y') }}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="tips-content">
-                <h4>Complete Your Profile</h4>
-                <p>Professionals with complete profiles are 3x more likely to get hired. Add your portfolio, certifications, and work experience.</p>
+
+            <!-- SECTION 6: BROWSE JOBS -->
+            <div id="section-browse" class="dashboard-section">
+                <div class="dashboard-header">
+                    <div class="header-left">
+                        <h1>Browse Jobs</h1>
+                        <p>Find opportunities that match your skills</p>
+                    </div>
+                </div>
+                <div class="card full-width">
+                    <div class="card-body">
+                        @if(isset($availableJobs) && $availableJobs->count() > 0)
+                            <div class="jobs-grid">
+                                @foreach($availableJobs as $job)
+                                    <div class="job-card">
+                                        <div class="job-card-header">
+                                            <h4>{{ Str::limit($job->title ?? 'Untitled', 40) }}</h4>
+                                            <span class="job-price">${{ number_format($job->budget_max ?? 0) }}</span>
+                                        </div>
+                                        <div class="job-card-body">
+                                            <p>{{ Str::limit($job->description ?? 'No description', 80) }}</p>
+                                            <div class="job-card-meta">
+                                                <span><i class="fas fa-map-marker-alt"></i> {{ $job->location ?? 'Remote' }}</span>
+                                                <span><i class="fas fa-clock"></i> {{ $job->created_at->diffForHumans() }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="job-card-footer">
+                                            <a href="{{ route('jobs.show', $job->id) }}" class="btn-outline">View Details</a>
+                                            <form action="{{ route('bids.store', $job->id) }}" method="POST" class="quick-bid">
+                                                @csrf
+                                                <input type="hidden" name="bid_amount" value="{{ $job->budget_min ?? 100 }}">
+                                                <input type="hidden" name="timeline" value="14">
+                                                <input type="hidden" name="proposal" value="I'm interested in this project">
+                                                <button type="submit" class="btn-bid">Quick Bid</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <div class="view-all-jobs">
+                                <a href="{{ route('jobs.index') }}" class="btn-outline">Browse All Jobs →</a>
+                            </div>
+                        @else
+                            <div class="empty-state">
+                                <i class="fas fa-search"></i>
+                                <p>No available jobs at the moment</p>
+                                <a href="{{ route('jobs.index') }}" class="btn-sm">Browse all jobs →</a>
+                            </div>
+                        @endif
+                    </div>
+                </div>
             </div>
-            <a href="{{ route('profile.edit') }}" class="tips-btn">
-                Update Profile
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="5" y1="12" x2="19" y2="12"/>
-                    <polyline points="12 5 19 12 12 19"/>
-                </svg>
-            </a>
+
         </div>
-    </div>
+    </main>
 </div>
-@endsection
 
 @push('styles')
 <style>
-/* ═══════════════════════════════════════════
-   PROFESSIONAL DASHBOARD - AMERICAN STYLE
-   Clean | Bold | Data-Driven | Functional
-═══════════════════════════════════════════ */
+/* ============================================
+   PROFESSIONAL DASHBOARD - COMPLETE STYLES
+============================================ */
 
 * {
     margin: 0;
@@ -415,103 +497,249 @@
     box-sizing: border-box;
 }
 
-.dashboard-container {
-    background: #F1F5F9;
+.dashboard-layout {
+    display: flex;
     min-height: calc(100vh - 64px);
-    padding: 32px 0;
+    background: #F5F7FA;
 }
 
-.container {
-    max-width: 1280px;
+/* SIDEBAR */
+.dashboard-sidebar {
+    width: 280px;
+    background: #1A2C3E;
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: calc(100vh - 64px);
+    flex-shrink: 0;
+}
+
+.sidebar-header {
+    padding: 24px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.company-badge {
+    width: 48px;
+    height: 48px;
+    background: #C6A43B;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.company-initial {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1A2C3E;
+}
+
+.company-info h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #FFFFFF;
+    margin: 0 0 2px 0;
+}
+
+.company-info p {
+    font-size: 12px;
+    color: #94A3B8;
+    margin: 0;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    color: #94A3B8;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.nav-item svg {
+    width: 20px;
+    height: 20px;
+    stroke: #94A3B8;
+}
+
+.nav-item span {
+    flex: 1;
+}
+
+.nav-item:hover {
+    background: rgba(255,255,255,0.06);
+    color: #FFFFFF;
+}
+
+.nav-item:hover svg {
+    stroke: #C6A43B;
+}
+
+.nav-item.active {
+    background: rgba(198,164,59,0.12);
+    color: #C6A43B;
+}
+
+.nav-item.active svg {
+    stroke: #C6A43B;
+}
+
+.nav-badge {
+    background: #334155;
+    color: #94A3B8;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.nav-badge.warning {
+    background: rgba(245,166,35,0.2);
+    color: #F5A623;
+}
+
+.nav-badge.danger {
+    background: rgba(239,68,68,0.2);
+    color: #F87171;
+}
+
+.sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.logout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    color: #94A3B8;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.logout-btn:hover {
+    background: rgba(239,68,68,0.15);
+    color: #F87171;
+}
+
+/* MAIN CONTENT */
+.dashboard-main {
+    flex: 1;
+    overflow-x: auto;
+    padding: 24px 0;
+}
+
+.dashboard-container {
+    max-width: 1000px;
     margin: 0 auto;
     padding: 0 24px;
 }
 
-/* Typography */
-h1, h2, h3, h4 {
-    font-weight: 600;
-    letter-spacing: -0.02em;
+/* Dashboard Sections */
+.dashboard-section {
+    display: none;
+    animation: fadeIn 0.25s ease;
 }
 
-/* Welcome Section */
-.welcome-section {
+.dashboard-section.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Header */
+.dashboard-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 28px;
     flex-wrap: wrap;
-    gap: 20px;
-    margin-bottom: 32px;
+    gap: 16px;
 }
 
-.welcome-text h1 {
-    font-size: 28px;
-    font-weight: 700;
-    color: #0F172A;
+.header-left h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1A2C3E;
     margin: 0 0 4px 0;
 }
 
-.welcome-text h1 span {
-    color: #2563EB;
-}
-
-.welcome-text p {
-    font-size: 15px;
-    color: #475569;
+.header-left p {
+    font-size: 14px;
+    color: #6B7A8F;
     margin: 0;
 }
 
-.welcome-actions {
-    display: flex;
-    gap: 12px;
-}
-
-/* Buttons */
 .btn-primary {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 20px;
-    background: #2563EB;
-    color: white;
-    border: none;
+    padding: 10px 24px;
+    background: #C6A43B;
+    color: #1A2C3E;
     border-radius: 8px;
+    text-decoration: none;
     font-size: 14px;
     font-weight: 600;
-    text-decoration: none;
     transition: all 0.2s;
 }
 
 .btn-primary:hover {
-    background: #1D4ED8;
-    transform: translateY(-1px);
+    background: #AD8E32;
 }
 
-.btn-secondary {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
+.total-count {
+    font-size: 13px;
+    color: #6B7A8F;
     background: white;
-    color: #1E293B;
+    padding: 6px 14px;
+    border-radius: 20px;
     border: 1px solid #E2E8F0;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    text-decoration: none;
-    transition: all 0.2s;
 }
 
-.btn-secondary:hover {
-    background: #F8FAFC;
-    border-color: #CBD5E1;
+.unread-badge {
+    background: #C6A43B;
+    color: #1A2C3E;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
 }
 
-/* Stats Row */
-.stats-row {
+/* Stats Grid */
+.stats-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 20px;
-    margin-bottom: 24px;
+    margin-bottom: 28px;
 }
 
 .stat-card {
@@ -519,50 +747,9 @@ h1, h2, h3, h4 {
     border-radius: 12px;
     padding: 20px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 16px;
     border: 1px solid #E2E8F0;
-    transition: all 0.2s;
-}
-
-.stat-card:hover {
-    border-color: #CBD5E1;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-
-.stat-content {
-    display: flex;
-    flex-direction: column;
-}
-
-.stat-label {
-    font-size: 13px;
-    font-weight: 500;
-    color: #64748B;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-}
-
-.stat-value {
-    font-size: 32px;
-    font-weight: 700;
-    color: #0F172A;
-    line-height: 1;
-}
-
-.stat-trend {
-    font-size: 11px;
-    font-weight: 600;
-    margin-top: 6px;
-}
-
-.stat-trend.up {
-    color: #10B981;
-}
-
-.stat-trend.down {
-    color: #EF4444;
 }
 
 .stat-icon {
@@ -574,78 +761,39 @@ h1, h2, h3, h4 {
     justify-content: center;
 }
 
-.stat-icon.total { background: #EFF6FF; }
-.stat-icon.total svg { stroke: #2563EB; }
-.stat-icon.pending { background: #FEF3C7; }
-.stat-icon.pending svg { stroke: #F59E0B; }
-.stat-icon.accepted { background: #ECFDF5; }
-.stat-icon.accepted svg { stroke: #10B981; }
-.stat-icon.earnings { background: #F3E8FF; }
-.stat-icon.earnings svg { stroke: #8B5CF6; }
+.stat-icon.purple { background: #F3E8FF; }
+.stat-icon.purple i { color: #8B5CF6; font-size: 20px; }
+.stat-icon.blue { background: #EFF6FF; }
+.stat-icon.blue i { color: #3B82F6; font-size: 20px; }
+.stat-icon.green { background: #ECFDF5; }
+.stat-icon.green i { color: #10B981; font-size: 20px; }
+.stat-icon.gold { background: #FEF8E8; }
+.stat-icon.gold i { color: #C6A43B; font-size: 20px; }
 
-/* Quick Stats */
-.quick-stats {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-    margin-bottom: 32px;
+.stat-info {
+    flex: 1;
 }
 
-.quick-stat-card {
-    background: white;
-    border-radius: 12px;
-    padding: 16px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    border: 1px solid #E2E8F0;
-    transition: all 0.2s;
-}
-
-.quick-stat-card:hover {
-    border-color: #CBD5E1;
-}
-
-.quick-stat-icon {
-    width: 44px;
-    height: 44px;
-    background: #F8FAFC;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.quick-stat-icon svg {
-    stroke: #2563EB;
-}
-
-.quick-stat-info {
-    display: flex;
-    flex-direction: column;
-}
-
-.quick-stat-value {
-    font-size: 20px;
+.stat-value {
+    font-size: 24px;
     font-weight: 700;
-    color: #0F172A;
-    line-height: 1.2;
+    color: #1A2C3E;
 }
 
-.quick-stat-label {
-    font-size: 11px;
-    font-weight: 500;
-    color: #64748B;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.stat-label {
+    font-size: 12px;
+    color: #8A99B0;
 }
 
-/* Content Grid */
-.content-grid {
-    margin-bottom: 32px;
+/* Two Columns */
+.two-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
 }
 
-/* Card */
+/* Cards */
 .card {
     background: white;
     border-radius: 12px;
@@ -653,665 +801,473 @@ h1, h2, h3, h4 {
     overflow: hidden;
 }
 
+.card.full-width {
+    margin-bottom: 20px;
+}
+
 .card-header {
-    padding: 20px 24px;
-    border-bottom: 1px solid #F1F5F9;
+    padding: 16px 20px;
+    border-bottom: 1px solid #F0F2F5;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
 }
 
 .card-header h3 {
     font-size: 16px;
     font-weight: 600;
-    color: #0F172A;
-    margin: 0 0 4px 0;
-}
-
-.card-header p {
-    font-size: 13px;
-    color: #64748B;
+    color: #1A2C3E;
     margin: 0;
 }
 
 .card-link {
-    font-size: 13px;
-    font-weight: 500;
-    color: #2563EB;
+    font-size: 12px;
+    color: #C6A43B;
     text-decoration: none;
 }
 
 .card-link:hover {
-    color: #1D4ED8;
+    text-decoration: underline;
 }
 
-.card-footer {
-    padding: 16px 24px;
-    border-top: 1px solid #F1F5F9;
-    text-align: center;
+.card-body {
+    padding: 0;
 }
 
-.card-footer a {
-    font-size: 13px;
-    font-weight: 500;
-    color: #2563EB;
-    text-decoration: none;
+/* List Items */
+.list-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    border-bottom: 1px solid #F0F2F5;
 }
 
-/* Bids Table */
-.bids-table-responsive {
-    overflow-x: auto;
+.list-item-status {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
 }
 
-.bids-table {
-    width: 100%;
-    border-collapse: collapse;
+.list-item-status.pending { background: #F59E0B; }
+.list-item-status.accepted { background: #10B981; }
+.list-item-status.rejected { background: #EF4444; }
+
+.list-item-icon {
+    width: 32px;
+    height: 32px;
+    background: #F0F2F5;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.bids-table thead th {
-    text-align: left;
-    padding: 16px 20px;
-    background: #F8FAFC;
-    font-size: 12px;
-    font-weight: 600;
-    color: #475569;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 1px solid #E2E8F0;
-}
-
-.bids-table tbody tr {
-    border-bottom: 1px solid #F1F5F9;
-    transition: background 0.2s;
-}
-
-.bids-table tbody tr:hover {
-    background: #F8FAFC;
-}
-
-.bids-table tbody td {
-    padding: 16px 20px;
-    vertical-align: middle;
-}
-
-/* Job Cell */
-.job-cell {
-    min-width: 200px;
-}
-
-.job-link {
-    display: block;
+.list-item-icon i {
+    color: #C6A43B;
     font-size: 14px;
+}
+
+.list-item-content {
+    flex: 1;
+}
+
+.list-item-title {
+    font-size: 13px;
     font-weight: 600;
-    color: #0F172A;
-    text-decoration: none;
+    color: #1A2C3E;
     margin-bottom: 4px;
 }
 
-.job-link:hover {
-    color: #2563EB;
-}
-
-.job-id {
-    font-size: 11px;
-    color: #94A3B8;
-}
-
-.job-deleted {
-    font-size: 14px;
-    color: #94A3B8;
-    font-style: italic;
-}
-
-/* Amount Cell */
-.amount-cell {
-    min-width: 100px;
-}
-
-.bid-amount {
-    font-size: 16px;
-    font-weight: 700;
-    color: #0F172A;
-}
-
-/* Timeline Cell */
-.timeline-cell {
-    min-width: 90px;
-}
-
-.timeline-badge {
-    display: inline-block;
-    padding: 4px 10px;
-    background: #F1F5F9;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 500;
-    color: #475569;
-}
-
-/* Status Cell */
-.status-cell {
-    min-width: 100px;
-}
-
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.status-badge.pending {
-    background: #FEF3C7;
-    color: #D97706;
-}
-
-.status-badge.accepted {
-    background: #ECFDF5;
-    color: #059669;
-}
-
-.status-badge.rejected {
-    background: #FEF2F2;
-    color: #DC2626;
-}
-
-.status-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-}
-
-/* Actions Cell */
-.actions-cell {
-    min-width: 100px;
-}
-
-.action-buttons {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.action-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: none;
-    background: #F8FAFC;
-    border: 1px solid #E2E8F0;
-}
-
-.action-btn.edit {
-    color: #64748B;
-}
-
-.action-btn.edit:hover {
-    background: #EFF6FF;
-    border-color: #2563EB;
-    color: #2563EB;
-}
-
-.action-btn.delete {
-    color: #64748B;
-}
-
-.action-btn.delete:hover {
-    background: #FEF2F2;
-    border-color: #EF4444;
-    color: #EF4444;
-}
-
-.view-job-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    background: #F8FAFC;
-    border: 1px solid #E2E8F0;
-    border-radius: 6px;
-    font-size: 11px;
-    font-weight: 600;
-    color: #475569;
+.list-item-title a {
+    color: #1A2C3E;
     text-decoration: none;
-    transition: all 0.2s;
 }
 
-.view-job-btn:hover {
-    background: #ECFDF5;
-    border-color: #10B981;
-    color: #059669;
+.list-item-title a:hover {
+    color: #C6A43B;
 }
 
-.job-unavailable {
+.list-item-meta {
+    display: flex;
+    gap: 12px;
     font-size: 11px;
-    color: #94A3B8;
-    font-style: italic;
+    color: #8A99B0;
 }
 
-/* Modal */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 1000;
+.list-item-amount {
+    font-weight: 600;
+    color: #C6A43B;
 }
 
-.modal-dialog {
-    position: relative;
-    width: 400px;
-    margin: 100px auto;
+.list-item-proposal {
+    font-size: 11px;
+    color: #8A99B0;
+    margin-top: 6px;
 }
 
-.modal-content {
+.list-item-badge {
+    flex-shrink: 0;
+}
+
+.badge {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.badge.pending { background: #FEF3C7; color: #D97706; }
+.badge.accepted { background: #ECFDF5; color: #059669; }
+.badge.rejected { background: #FEF2F2; color: #DC2626; }
+.badge.in-progress { background: #EFF6FF; color: #2563EB; }
+.badge.completed { background: #ECFDF5; color: #059669; }
+
+/* Jobs Grid */
+.jobs-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: #E2E8F0;
+}
+
+.job-card {
     background: white;
-    border-radius: 12px;
-    overflow: hidden;
+    padding: 16px;
 }
 
-.modal-header {
-    padding: 20px 24px;
-    border-bottom: 1px solid #F1F5F9;
+.job-card-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    margin-bottom: 10px;
 }
 
-.modal-header h5 {
-    font-size: 16px;
+.job-card-header h4 {
+    font-size: 14px;
     font-weight: 600;
-    color: #0F172A;
+    color: #1A2C3E;
     margin: 0;
 }
 
-.modal-close {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 4px;
-}
-
-.modal-body {
-    padding: 24px;
-    text-align: center;
-}
-
-.modal-warning {
-    margin-bottom: 16px;
-}
-
-.modal-body p {
+.job-price {
     font-size: 14px;
-    color: #475569;
-    margin-bottom: 8px;
+    font-weight: 700;
+    color: #C6A43B;
 }
 
-.modal-note {
+.job-card-body p {
     font-size: 12px;
-    color: #94A3B8;
+    color: #6B7A8F;
+    margin-bottom: 10px;
 }
 
-.modal-footer {
-    padding: 16px 24px;
-    border-top: 1px solid #F1F5F9;
+.job-card-meta {
     display: flex;
-    justify-content: flex-end;
     gap: 12px;
+    font-size: 11px;
+    color: #8A99B0;
 }
 
-.btn-cancel {
-    padding: 8px 16px;
-    background: #F8FAFC;
+.job-card-footer {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.btn-outline {
+    flex: 1;
+    padding: 7px;
+    background: transparent;
     border: 1px solid #E2E8F0;
     border-radius: 6px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
-    color: #475569;
-    cursor: pointer;
+    color: #5A6E85;
+    text-decoration: none;
+    text-align: center;
     transition: all 0.2s;
 }
 
-.btn-cancel:hover {
-    background: #F1F5F9;
+.btn-outline:hover {
+    border-color: #C6A43B;
+    color: #C6A43B;
 }
 
-.btn-confirm {
-    padding: 8px 16px;
-    background: #EF4444;
+.btn-bid {
+    flex: 1;
+    padding: 7px;
+    background: #C6A43B;
     border: none;
     border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    color: white;
+    font-size: 12px;
+    font-weight: 500;
+    color: #1A2C3E;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: background 0.2s;
 }
 
-.btn-confirm:hover {
-    background: #DC2626;
+.btn-bid:hover {
+    background: #AD8E32;
+}
+
+.quick-bid {
+    flex: 1;
+}
+
+/* Messages */
+.message-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px;
+    border-bottom: 1px solid #F0F2F5;
+}
+
+.message-item-link {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px;
+    text-decoration: none;
+    border-bottom: 1px solid #F0F2F5;
+    transition: background 0.2s;
+}
+
+.message-item-link:hover {
+    background: #F8FAFC;
+}
+
+.message-avatar img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.message-content {
+    flex: 1;
+}
+
+.message-sender {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1A2C3E;
+    margin-bottom: 2px;
+}
+
+.message-preview {
+    font-size: 12px;
+    color: #8A99B0;
+}
+
+.message-time {
+    font-size: 11px;
+    color: #8A99B0;
+}
+
+.view-all-messages, .view-all-jobs {
+    padding: 16px;
+    text-align: center;
+    border-top: 1px solid #F0F2F5;
+}
+
+/* Profile Card */
+.profile-card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+    padding: 24px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.profile-avatar img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.profile-info {
+    flex: 1;
+}
+
+.info-row {
+    display: flex;
+    padding: 10px 0;
+    border-bottom: 1px solid #F0F2F5;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    width: 130px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1A2C3E;
+}
+
+.info-value {
+    flex: 1;
+    font-size: 13px;
+    color: #6B7A8F;
 }
 
 /* Empty State */
 .empty-state {
     text-align: center;
-    padding: 64px 24px;
+    padding: 40px 20px;
 }
 
-.empty-icon {
-    margin-bottom: 16px;
-}
-
-.empty-state h4 {
-    font-size: 16px;
-    font-weight: 600;
-    color: #1E293B;
-    margin: 0 0 8px 0;
+.empty-state i {
+    font-size: 40px;
+    color: #CBD5E1;
+    margin-bottom: 12px;
 }
 
 .empty-state p {
     font-size: 13px;
-    color: #64748B;
-    margin-bottom: 20px;
-}
-
-/* Recommended Section */
-.recommended-section {
-    margin-bottom: 32px;
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 16px;
-    margin-bottom: 24px;
-}
-
-.section-header h3 {
-    font-size: 18px;
-    font-weight: 600;
-    color: #0F172A;
-    margin: 0 0 4px 0;
-}
-
-.section-header p {
-    font-size: 13px;
-    color: #64748B;
-    margin: 0;
-}
-
-.recommended-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-}
-
-.recommended-card {
-    background: white;
-    border-radius: 12px;
-    border: 1px solid #E2E8F0;
-    padding: 20px;
-    transition: all 0.2s;
-    position: relative;
-}
-
-.recommended-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-    border-color: #CBD5E1;
-}
-
-.recommended-badge {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 4px 10px;
-    background: #FEF3C7;
-    border-radius: 20px;
-    font-size: 10px;
-    font-weight: 700;
-    color: #D97706;
-    text-transform: uppercase;
-}
-
-.recommended-title {
-    font-size: 15px;
-    font-weight: 600;
-    margin: 0 0 12px 0;
-    padding-right: 70px;
-}
-
-.recommended-title a {
-    color: #0F172A;
-    text-decoration: none;
-}
-
-.recommended-title a:hover {
-    color: #2563EB;
-}
-
-.recommended-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.meta-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 12px;
-    color: #64748B;
-}
-
-.recommended-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 12px;
-    border-top: 1px solid #F1F5F9;
-}
-
-.bids-count {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 11px;
-    font-weight: 600;
-    color: #64748B;
-}
-
-.view-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    background: #F8FAFC;
-    border: 1px solid #E2E8F0;
-    border-radius: 6px;
-    font-size: 11px;
-    font-weight: 600;
-    color: #475569;
-    text-decoration: none;
-    transition: all 0.2s;
-}
-
-.view-btn:hover {
-    background: #EFF6FF;
-    border-color: #2563EB;
-    color: #2563EB;
-}
-
-/* Empty State Small */
-.empty-state-small {
-    text-align: center;
-    padding: 48px 24px;
-    background: white;
-    border-radius: 12px;
-    border: 1px solid #E2E8F0;
-}
-
-.empty-state-small svg {
+    color: #8A99B0;
     margin-bottom: 12px;
 }
 
-.empty-state-small p {
-    font-size: 13px;
-    color: #64748B;
-    margin: 0;
-}
-
-/* Tips Card */
-.tips-card {
-    background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
-    border-radius: 12px;
-    padding: 20px 28px;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-
-.tips-icon {
-    width: 48px;
-    height: 48px;
-    background: rgba(37,99,235,0.15);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.tips-icon svg {
-    stroke: #60A5FA;
-}
-
-.tips-content {
-    flex: 1;
-}
-
-.tips-content h4 {
-    font-size: 14px;
-    font-weight: 600;
-    color: white;
-    margin: 0 0 4px 0;
-}
-
-.tips-content p {
-    font-size: 13px;
-    color: #94A3B8;
-    margin: 0;
-}
-
-.tips-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    background: #2563EB;
-    color: white;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
+.btn-sm {
+    display: inline-block;
+    padding: 6px 16px;
+    background: #C6A43B;
+    color: #1A2C3E;
+    border-radius: 6px;
     text-decoration: none;
-    transition: all 0.2s;
+    font-size: 12px;
+    font-weight: 500;
+    transition: background 0.2s;
 }
 
-.tips-btn:hover {
-    background: #1D4ED8;
-    transform: translateY(-1px);
+.btn-sm:hover {
+    background: #AD8E32;
 }
 
 /* Responsive */
-@media (max-width: 1024px) {
-    .stats-row {
+@media (max-width: 900px) {
+    .stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }
     
-    .quick-stats {
-        grid-template-columns: repeat(2, 1fr);
+    .two-columns {
+        grid-template-columns: 1fr;
+    }
+    
+    .jobs-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .profile-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .info-row {
+        flex-direction: column;
+    }
+    
+    .info-label {
+        width: auto;
+        margin-bottom: 4px;
     }
 }
 
 @media (max-width: 768px) {
+    .dashboard-layout {
+        flex-direction: column;
+    }
+    
+    .dashboard-sidebar {
+        width: 100%;
+        position: static;
+        height: auto;
+    }
+    
+    .sidebar-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    
+    .nav-item {
+        flex: 1;
+        min-width: 100px;
+        justify-content: center;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
     .dashboard-container {
-        padding: 24px 0;
-    }
-    
-    .container {
         padding: 0 16px;
-    }
-    
-    .welcome-section {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .welcome-actions {
-        width: 100%;
-        justify-content: center;
-    }
-    
-    .stats-row {
-        grid-template-columns: 1fr;
-    }
-    
-    .quick-stats {
-        grid-template-columns: 1fr;
-    }
-    
-    .bids-table-responsive {
-        overflow-x: auto;
-    }
-    
-    .bids-table {
-        min-width: 700px;
-    }
-    
-    .recommended-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .tips-card {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .modal-dialog {
-        width: 90%;
-        margin: 50px auto;
-    }
-}
-
-@media (max-width: 480px) {
-    .welcome-actions {
-        flex-direction: column;
-    }
-    
-    .btn-primary, .btn-secondary {
-        justify-content: center;
-        width: 100%;
     }
 }
 </style>
 @endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
+    const sections = {
+        overview: document.getElementById('section-overview'),
+        bids: document.getElementById('section-bids'),
+        jobs: document.getElementById('section-jobs'),
+        messages: document.getElementById('section-messages'),
+        profile: document.getElementById('section-profile'),
+        browse: document.getElementById('section-browse')
+    };
+    
+    function showSection(sectionId) {
+        // Hide all sections
+        Object.values(sections).forEach(section => {
+            if (section) section.classList.remove('active');
+        });
+        
+        // Show selected section
+        if (sections[sectionId]) {
+            sections[sectionId].classList.add('active');
+        }
+        
+        // Update active state on nav items
+        navItems.forEach(item => {
+            item.classList.remove('active');
+            if (item.getAttribute('data-section') === sectionId) {
+                item.classList.add('active');
+            }
+        });
+        
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    // ONLY sidebar navigation items control section toggling
+    // Regular links (Browse Jobs button, View all links, etc.) will work normally
+    navItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const sectionId = this.getAttribute('data-section');
+            if (sectionId) showSection(sectionId);
+        });
+    });
+    
+    // Set active section from URL hash if present
+    if (window.location.hash) {
+        const hash = window.location.hash.substring(1);
+        if (sections[hash]) showSection(hash);
+    } else {
+        // Default to overview
+        showSection('overview');
+    }
+});
+</script>
+@endpush
+@endsection

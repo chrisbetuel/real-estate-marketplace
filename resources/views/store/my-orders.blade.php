@@ -1,4 +1,4 @@
-@extends('store::layouts.app')
+@extends('layouts.app')
 
 @section('title', 'My Store Orders')
 

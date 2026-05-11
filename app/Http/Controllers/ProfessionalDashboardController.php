@@ -14,10 +14,14 @@ class ProfessionalDashboardController extends Controller
         $professional = Auth::user();
         
         // Get all bids submitted by this professional
-$bids = Bid::where('professional_id', $professional->id)
+        $bids = Bid::where('professional_id', $professional->id)
             ->with(['job', 'job.client'])
             ->latest()
             ->get();
+
+        // For dashboard widgets
+        $recentBids = $bids->take(5);
+        $allBids = $bids;
         
         // Statistics
         $stats = [
@@ -42,15 +46,33 @@ $unreadCount = \App\Models\Message::whereHas('conversation', function($query) {
 ->where('user_id', '!=', Auth::id())
           ->count();
         
-        // Recommended jobs
-        $recommendedJobs = Job::where('status', 'open')
+        // Jobs assigned to this professional
+        $myJobs = Job::where('assigned_professional_id', $professional->id)
+            ->with('client')
+            ->latest()
+            ->get();
+
+        // Recent jobs widgets
+        $activeJobs = $myJobs->where('status', 'in_progress');
+
+        // Available jobs to browse
+        $availableJobs = Job::where('status', 'open')
             ->where('client_id', '!=', $professional->id)
             ->with('client')
             ->latest()
             ->take(5)
             ->get();
-        
-        return view('professional.dashboard', compact('bids', 'stats', 'recommendedJobs', 'unreadCount'));
+
+        return view('professional.dashboard', compact(
+            'bids',
+            'recentBids',
+            'allBids',
+            'stats',
+            'myJobs',
+            'activeJobs',
+            'availableJobs',
+            'unreadCount'
+        ));
     }
     
     public function bids()

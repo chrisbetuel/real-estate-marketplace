@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edit Expense — OWERU POS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --ink: #0C0F14; --ink-soft: #1A1F2B; --ink-muted: #3D4455;
+  --paper: #F5F2EC; --paper-2: #EDE9E0; --cream: #FAF8F4;
+  --gold: #B8963E; --gold-lt: #D4AF5E; --gold-pale: #F2EAD6;
+  --white: #FFFFFF; --slate: #6B7385; --border: rgba(12,15,20,0.1);
+  --f-sans: 'Syne', sans-serif;
+  --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: var(--f-sans); background: var(--cream); color: var(--ink); -webkit-font-smoothing: antialiased; }
+.container { max-width: 560px; margin: 0 auto; padding: 0 24px; }
+
+/* Header */
+.header { position: sticky; top: 0; z-index: 500; background: rgba(245,242,236,0.96); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
+.header__row { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo__mark { width: 32px; height: 32px; background: var(--ink); border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+.logo__name { font-family: var(--f-sans); font-size: 14px; font-weight: 800; letter-spacing: 2px; color: var(--ink); }
+.back-link { font-size: 12px; font-weight: 600; letter-spacing: 0.8px; color: var(--ink-muted); text-transform: uppercase; transition: color 0.2s; }
+.back-link:hover { color: var(--gold); }
+
+/* Page */
+.page { padding: 40px 0; }
+.page__hd { margin-bottom: 32px; }
+.page__hd h1 { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 600; margin-bottom: 8px; }
+.page__hd p { font-size: 14px; color: var(--slate); }
+
+/* Meta */
+.meta-bar { background: var(--paper); border: 1px solid var(--border); border-radius: 3px; padding: 14px 20px; margin-bottom: 24px; display: flex; gap: 20px; flex-wrap: wrap; }
+.meta-bar span { font-size: 12px; color: var(--slate); }
+.meta-bar strong { color: var(--ink); }
+
+/* Form */
+.form-card { background: var(--white); border: 1px solid var(--border); border-radius: 3px; padding: 32px; }
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 6px; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 3px; font-family: var(--f-sans); font-size: 14px; outline: none; transition: border-color 0.2s; background: var(--white); }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--gold); }
+.form-group textarea { resize: vertical; min-height: 80px; }
+.form-group .error { color: #DC2626; font-size: 12px; margin-top: 4px; }
+
+.form-actions { display: flex; gap: 12px; margin-top: 32px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--f-sans); font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 12px 24px; border: none; border-radius: 2px; cursor: pointer; transition: all 0.25s; text-decoration: none; }
+.btn-primary { background: var(--gold); color: var(--ink); }
+.btn-primary:hover { background: var(--gold-lt); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(184,150,62,0.35); }
+.btn-secondary { background: var(--paper); color: var(--ink-muted); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--border); }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="container">
+    <div class="header__row">
+      <a href="/" class="logo">
+        <div class="logo__mark">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M3 15 L7 5 L10 10 L13 7 L17 15" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <span class="logo__name">OWERU POS</span>
+      </a>
+      <a href="{{ route('pos.expenses') }}" class="back-link">← Back to Expenses</a>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <div class="page">
+    <div class="page__hd">
+      <h1>Edit Expense</h1>
+      <p>Update the expense details.</p>
+    </div>
+
+    <div class="meta-bar">
+      <span><strong>Expense #:</strong> {{ $expense->expense_number }}</span>
+      <span><strong>Created:</strong> {{ $expense->created_at->format('M d, Y H:i') }}</span>
+    </div>
+
+    <div class="form-card">
+      <form method="POST" action="{{ route('pos.expenses.update', $expense) }}">
+        @csrf
+        @method('PUT')
+
+        <div class="form-group">
+          <label for="category">Category *</label>
+          <select id="category" name="category" required>
+            <option value="">Select category</option>
+            <option value="Rent" {{ old('category', $expense->category) == 'Rent' ? 'selected' : '' }}>Rent</option>
+            <option value="Utilities" {{ old('category', $expense->category) == 'Utilities' ? 'selected' : '' }}>Utilities</option>
+            <option value="Inventory" {{ old('category', $expense->category) == 'Inventory' ? 'selected' : '' }}>Inventory</option>
+            <option value="Transport" {{ old('category', $expense->category) == 'Transport' ? 'selected' : '' }}>Transport</option>
+            <option value="Salaries" {{ old('category', $expense->category) == 'Salaries' ? 'selected' : '' }}>Salaries</option>
+            <option value="Marketing" {{ old('category', $expense->category) == 'Marketing' ? 'selected' : '' }}>Marketing</option>
+            <option value="Maintenance" {{ old('category', $expense->category) == 'Maintenance' ? 'selected' : '' }}>Maintenance</option>
+            <option value="Supplies" {{ old('category', $expense->category) == 'Supplies' ? 'selected' : '' }}>Supplies</option>
+            <option value="Taxes" {{ old('category', $expense->category) == 'Taxes' ? 'selected' : '' }}>Taxes</option>
+            <option value="Other" {{ old('category', $expense->category) == 'Other' ? 'selected' : '' }}>Other</option>
+          </select>
+          @error('category')<div class="error">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description *</label>
+          <input type="text" id="description" name="description" value="{{ old('description', $expense->description) }}" placeholder="e.g. Monthly shop rent" required>
+          @error('description')<div class="error">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="form-group">
+          <label for="amount">Amount ($) *</label>
+          <input type="number" id="amount" name="amount" step="0.01" min="0.01" value="{{ old('amount', $expense->amount) }}" placeholder="0.00" required>
+          @error('amount')<div class="error">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="form-group">
+          <label for="expense_date">Date *</label>
+          <input type="date" id="expense_date" name="expense_date" value="{{ old('expense_date', $expense->expense_date->toDateString()) }}" required>
+          @error('expense_date')<div class="error">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="form-group">
+          <label for="payment_method">Payment Method</label>
+          <select id="payment_method" name="payment_method">
+            <option value="cash" {{ old('payment_method', $expense->payment_method) == 'cash' ? 'selected' : '' }}>Cash</option>
+            <option value="card" {{ old('payment_method', $expense->payment_method) == 'card' ? 'selected' : '' }}>Card</option>
+            <option value="mobile_money" {{ old('payment_method', $expense->payment_method) == 'mobile_money' ? 'selected' : '' }}>Mobile Money</option>
+            <option value="bank_transfer" {{ old('payment_method', $expense->payment_method) == 'bank_transfer' ? 'selected' : '' }}>Bank Transfer</option>
+          </select>
+          @error('payment_method')<div class="error">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="form-group">
+          <label for="receipt_number">Receipt / Reference #</label>
+          <input type="text" id="receipt_number" name="receipt_number" value="{{ old('receipt_number', $expense->receipt_number) }}" placeholder="Optional receipt number">
+          @error('receipt_number')<div class="error">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="form-group">
+          <label for="notes">Notes</label>
+          <textarea id="notes" name="notes" placeholder="Any additional notes...">{{ old('notes', $expense->notes) }}</textarea>
+          @error('notes')<div class="error">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="form-actions">
+          <a href="{{ route('pos.expenses') }}" class="btn btn-secondary">Cancel</a>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update Expense</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
+

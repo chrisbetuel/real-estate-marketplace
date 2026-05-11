@@ -7,6 +7,8 @@ use App\Models\Job;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
+use App\Models\Store;
+use App\Models\CallSession;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -147,6 +149,47 @@ class MessageController extends Controller
             }, '=', 2)
             ->first();
         
+return redirect()->route('messages.show', $conversation->id);
+    }
+
+    /**
+     * Start a conversation with a store
+     */
+    public function startStoreConversation($storeId)
+    {
+        $user = Auth::user();
+        $store = Store::findOrFail($storeId);
+        $storeOwner = $store->user;
+
+        // Check if conversation already exists
+        $conversation = Conversation::where('store_id', $storeId)
+            ->whereHas('participants', function($query) use ($user, $storeOwner) {
+                $query->whereIn('user_id', [$user->id, $storeOwner->id]);
+            }, '=', 2)
+            ->first();
+
+        if ($conversation) {
+            return redirect()->route('messages.show', $conversation->id);
+        }
+
+        // Create new conversation
+        DB::transaction(function () use ($storeId, $user, $storeOwner) {
+            $conversation = Conversation::create([
+                'job_id' => null,
+                'store_id' => $storeId,
+                'status' => 'active',
+                'last_message_at' => now(),
+            ]);
+
+            $conversation->participants()->attach([$user->id, $storeOwner->id]);
+        });
+
+        $conversation = Conversation::where('store_id', $storeId)
+            ->whereHas('participants', function($query) use ($user, $storeOwner) {
+                $query->whereIn('user_id', [$user->id, $storeOwner->id]);
+            }, '=', 2)
+            ->first();
+
         return redirect()->route('messages.show', $conversation->id);
     }
 
@@ -275,7 +318,338 @@ class MessageController extends Controller
                 ];
             });
         
-        return response()->json(['messages' => $messages]);
+return response()->json(['messages' => $messages]);
+    }
+
+    /**
+     * Start an audio/video call
+     */
+    public function startCall(Request $request, $conversationId)
+    {
+        $conversation = Conversation::findOrFail($conversationId);
+        $user = Auth::user();
+
+        // Verify user is participant
+        $isParticipant = $conversation->participants()->where('user_id', $user->id)->exists();
+        if (!$isParticipant) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        // Get the other participant (callee)
+        $callee = $conversation->participants()->where('user_id', '!=', $user->id)->first();
+        if (!$callee) {
+            return response()->json(['error' => 'No participant to call'], 400);
+        }
+
+        // Validate request
+        $request->validate([
+            'type' => 'required|in:audio,video'
+        ]);
+
+        // Create call session
+        $call = CallSession::create([
+            'conversation_id' => $conversation->id,
+            'caller_id' => $user->id,
+            'callee_id' => $callee->id,
+            'type' => $request->type,
+            'status' => 'pending'
+        ]);
+
+        // Broadcast WebSocket event for incoming call (using Pusher or similar)
+        // event(new IncomingCall($call, $callee));
+
+        Log::info('Call initiated', [
+            'call_id' => $call->id,
+            'caller' => $user->id,
+            'callee' => $callee->id,
+            'type' => $request->type
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'call' => [
+                'id' => $call->id,
+                'type' => $call->type,
+                'caller' => [
+                    'id' => $user->id,
+                    'name' => $user->name
+                ],
+                'callee' => [
+                    'id' => $callee->id,
+                    'name' => $callee->name
+                ],
+                'status' => $call->status
+            ]
+        ]);
+    }
+
+    /**
+     * Accept an incoming call
+     */
+    public function acceptCall($callSessionId)
+    {
+        $call = CallSession::findOrFail($callSessionId);
+        $user = Auth::user();
+
+        // Only callee can accept
+        if ($call->callee_id !== $user->id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        if ($call->status !== 'pending') {
+            return response()->json(['error' => 'Call is no longer pending'], 400);
+        }
+
+        $call->update([
+            'status' => 'accepted',
+            'started_at' => now()
+        ]);
+
+        Log::info('Call accepted', ['call_id' => $call->id]);
+
+        return response()->json([
+            'success' => true,
+            'call' => [
+                'id' => $call->id,
+                'status' => $call->status,
+                'started_at' => $call->started_at
+            ]
+        ]);
+    }
+
+    /**
+     * Reject an incoming call
+     */
+    public function rejectCall($callSessionId)
+    {
+        $call = CallSession::findOrFail($callSessionId);
+        $user = Auth::user();
+
+        if ($call->callee_id !== $user->id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        if ($call->status !== 'pending') {
+            return response()->json(['error' => 'Call is no longer pending'], 400);
+        }
+
+        $call->update(['status' => 'rejected']);
+
+        Log::info('Call rejected', ['call_id' => $call->id]);
+
+        return response()->json(['success' => true]);
+    }
+
+/**
+     * End a call (by ID in request body - for frontend)
+     */
+    public function endCallById(Request $request)
+    {
+        $request->validate(['call_id' => 'required|exists:call_sessions,id']);
+
+        $call = CallSession::findOrFail($request->call_id);
+        $user = Auth::user();
+
+        // Either party can end the call
+        if ($call->caller_id !== $user->id && $call->callee_id !== $user->id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        if (!in_array($call->status, ['accepted', 'pending'])) {
+            return response()->json(['error' => 'Call is not active'], 400);
+        }
+
+        $endedAt = now();
+        $duration = $call->started_at ? $endedAt->diffInSeconds($call->started_at) : 0;
+
+        $call->update([
+            'status' => 'ended',
+            'ended_at' => $endedAt,
+            'duration' => $duration
+        ]);
+
+        Log::info('Call ended', [
+            'call_id' => $call->id,
+            'duration' => $duration
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'call' => [
+                'id' => $call->id,
+                'status' => $call->status,
+                'duration' => $duration
+            ]
+        ]);
+    }
+
+    /**
+     * End an active call
+     */
+    public function endCall(Request $request, $callSessionId)
+    {
+        $call = CallSession::findOrFail($callSessionId);
+        $user = Auth::user();
+
+        // Either party can end the call
+        if ($call->caller_id !== $user->id && $call->callee_id !== $user->id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        if (!in_array($call->status, ['accepted', 'pending'])) {
+            return response()->json(['error' => 'Call is not active'], 400);
+        }
+
+        $endedAt = now();
+        $duration = $call->started_at ? $endedAt->diffInSeconds($call->started_at) : 0;
+
+        $call->update([
+            'status' => 'ended',
+            'ended_at' => $endedAt,
+            'duration' => $duration
+        ]);
+
+        Log::info('Call ended', [
+            'call_id' => $call->id,
+            'duration' => $duration
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'call' => [
+                'id' => $call->id,
+                'status' => $call->status,
+                'duration' => $duration
+            ]
+        ]);
+    }
+
+/**
+     * Initiate a call (called from frontend with conversation_id in body)
+     */
+    public function initiateCall(Request $request)
+    {
+        $request->validate([
+            'conversation_id' => 'required|exists:conversations,id',
+            'type' => 'required|in:audio,video'
+        ]);
+
+        $conversation = Conversation::findOrFail($request->conversation_id);
+        $user = Auth::user();
+
+        // Verify user is participant
+        $isParticipant = $conversation->participants()->where('user_id', $user->id)->exists();
+        if (!$isParticipant) {
+            return response()->json(['error' => 'You are not a participant in this conversation.'], 403);
+        }
+
+        // Get the other participant (callee)
+        $callee = $conversation->participants()->where('user_id', '!=', $user->id)->first();
+        if (!$callee) {
+            return response()->json(['error' => 'No participant to call'], 400);
+        }
+
+        // Check if callee is online (in production, use presence channels)
+        // For now, we allow calling even if offline
+
+        // Create call session
+        $call = CallSession::create([
+            'conversation_id' => $conversation->id,
+            'caller_id' => $user->id,
+            'callee_id' => $callee->id,
+            'type' => $request->type,
+            'status' => 'pending'
+        ]);
+
+        Log::info('Call initiated', [
+            'call_id' => $call->id,
+            'caller' => $user->id,
+            'callee' => $callee->id,
+            'type' => $request->type
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Call initiated - waiting for answer',
+            'call_id' => $call->id,
+            'call' => [
+                'id' => $call->id,
+                'type' => $call->type,
+                'caller' => [
+                    'id' => $user->id,
+                    'name' => $user->name
+                ],
+                'callee' => [
+                    'id' => $callee->id,
+                    'name' => $callee->name
+                ],
+                'status' => $call->status
+            ]
+        ]);
+    }
+
+    /**
+     * Handle ICE candidate exchange (WebRTC signaling)
+     */
+    public function iceCandidate(Request $request, $callSessionId)
+    {
+        $call = CallSession::findOrFail($callSessionId);
+        $user = Auth::user();
+
+        // Verify participant
+        if ($call->caller_id !== $user->id && $call->callee_id !== $user->id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'candidate' => 'required',
+            'sdpMid' => 'required',
+            'sdpMidLineIndex' => 'required'
+        ]);
+
+        // In production, broadcast this via WebSocket to the other participant
+        Log::info('ICE candidate received', [
+            'call_id' => $call->id,
+            'user_id' => $user->id,
+            'sdpMid' => $request->sdpMid
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Get call status for polling
+     */
+    public function callStatus($conversationId)
+    {
+        $conversation = Conversation::findOrFail($conversationId);
+        $user = Auth::user();
+
+        $isParticipant = $conversation->participants()->where('user_id', $user->id)->exists();
+        if (!$isParticipant) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        // Get the latest pending/active call for this conversation
+        $call = CallSession::where('conversation_id', $conversation->id)
+            ->whereIn('status', ['pending', 'accepted'])
+            ->latest()
+            ->first();
+
+        if (!$call) {
+            return response()->json(['call' => null]);
+        }
+
+        return response()->json([
+            'call' => [
+                'id' => $call->id,
+                'type' => $call->type,
+                'status' => $call->status,
+                'caller_id' => $call->caller_id,
+                'callee_id' => $call->callee_id,
+                'started_at' => $call->started_at?->toIso8601String()
+            ]
+        ]);
     }
 }
 
